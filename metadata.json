@@ -1,0 +1,7 @@
+{
+  "name": "GTXips Manager",
+  "description": "A high-performance corporate gamification management system with neon-tech aesthetics and AI-powered insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
