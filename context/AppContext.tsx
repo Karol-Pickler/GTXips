@@ -579,30 +579,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const { data, error } = await supabase
         .from('financial')
-        .insert([{
+        .upsert([{
           mes: record.mes,
           ano: record.ano,
           geracao_caixa: record.geracaoCaixa,
           valor_cotacao: record.valorCotacao
-        }])
+        }], { onConflict: 'mes,ano' })
         .select()
         .single();
 
       if (error) throw error;
       if (data) {
-        setFinancial(prev => [{
-          id: data.id,
-          mes: data.mes,
-          ano: data.ano,
-          geracaoCaixa: Number(data.geracao_caixa),
-          valorCotacao: Number(data.valor_cotacao)
-        }, ...prev].sort((a, b) => b.ano !== a.ano ? b.ano - a.ano : b.mes.localeCompare(a.mes)));
-        notify('Mês financeiro registrado!', 'success');
+        setFinancial(prev => {
+          // Remove existing if present (to avoid dupes in state during upsert)
+          const filtered = prev.filter(f => !(f.mes === data.mes && f.ano === data.ano));
+          return [{
+            id: data.id,
+            mes: data.mes,
+            ano: data.ano,
+            geracaoCaixa: Number(data.geracao_caixa),
+            valorCotacao: Number(data.valor_cotacao)
+          }, ...filtered].sort((a, b) => b.ano !== a.ano ? b.ano - a.ano : b.mes.localeCompare(a.mes));
+        });
+        notify('Registro financeiro atualizado com sucesso!', 'success');
         return true;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      notify('Erro ao salvar financeiro.', 'error');
+      notify(`Erro ao salvar financeiro: ${err.message || 'Erro desconhecido'}`, 'error');
     }
     return false;
   };
