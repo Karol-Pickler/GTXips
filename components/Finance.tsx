@@ -168,24 +168,29 @@ const Finance: React.FC = () => {
             Lançar Resultados
           </h3>
           <form onSubmit={handleAddRecord} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                value={selectedMonth}
-                onChange={e => setSelectedMonth(e.target.value)}
-                className="bg-black border border-brand-primary/20 rounded-2xl p-3 outline-none focus:border-brand-primary text-sm font-bold text-white text-center appearance-none"
-                style={{ textAlignLast: 'center' }}
-              >
-                {monthsNames.map(m => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={selectedYear}
-                onChange={e => setSelectedYear(Number(e.target.value))}
-                className="bg-black border border-brand-primary/20 rounded-2xl p-3 outline-none focus:border-brand-primary text-sm font-bold text-white text-center"
-                placeholder="Ano"
-              />
+            <div className="space-y-2">
+              <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1">
+                Período de Referência
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <select
+                  value={selectedMonth}
+                  onChange={e => setSelectedMonth(e.target.value)}
+                  className="bg-black border border-brand-primary/20 rounded-2xl p-3 outline-none focus:border-brand-primary text-sm font-bold text-white text-center appearance-none"
+                  style={{ textAlignLast: 'center' }}
+                >
+                  {monthsNames.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={selectedYear}
+                  onChange={e => setSelectedYear(Number(e.target.value))}
+                  className="bg-black border border-brand-primary/20 rounded-2xl p-3 outline-none focus:border-brand-primary text-sm font-bold text-white text-center"
+                  placeholder="Ano"
+                />
+              </div>
             </div>
 
             <div className="relative">
@@ -315,4 +320,4 @@ const Finance: React.FC = () => {
 };
 
 export default Finance;
-export default Finance;
+

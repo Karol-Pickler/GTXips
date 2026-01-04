@@ -776,7 +776,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications,
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities,
       login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, notify, removeNotification,
-      markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue
+      markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
+      addRule, removeRule, addFinancialRecord, removeFinancialRecord
     }}>
       {children}
     </AppContext.Provider>
