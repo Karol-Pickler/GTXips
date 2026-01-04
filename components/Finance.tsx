@@ -7,7 +7,7 @@ const Finance: React.FC = () => {
 
   // Form State
   const currentYear = new Date().getFullYear();
-  const [newCash, setNewCash] = useState<number | ''>('');
+  const [newCash, setNewCash] = useState<string>('');
   const [selectedMonth, setSelectedMonth] = useState<string>(
     (new Date().getMonth() + 1).toString().padStart(2, '0')
   );
@@ -52,11 +52,13 @@ const Finance: React.FC = () => {
     return { newCm, vm };
   };
 
-  const { newCm, vm } = newCash ? calculateQuotation(Number(newCash)) : { newCm: cmPrev, vm: 0 };
+  const numericCash = parseFloat(newCash);
+  const isValidCash = newCash !== '' && !isNaN(numericCash);
+  const { newCm, vm } = isValidCash ? calculateQuotation(numericCash) : { newCm: cmPrev, vm: 0 };
 
   const handleAddRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCash) return;
+    if (!newCash || isNaN(Number(newCash))) return;
 
     setIsSubmitting(true);
 
@@ -199,7 +201,7 @@ const Finance: React.FC = () => {
                 placeholder="Caixa gerado (R$)"
                 className="w-full bg-black border border-brand-primary/20 rounded-2xl p-4 outline-none focus:border-brand-primary text-sm font-bold text-white placeholder:text-ui-muted/30"
                 value={newCash}
-                onChange={e => setNewCash(e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={e => setNewCash(e.target.value)}
               />
               {newCash !== '' && (
                 <div className="mt-2 p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-ui-muted space-y-1">
