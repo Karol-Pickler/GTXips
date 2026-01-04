@@ -55,7 +55,7 @@ export interface Transaction {
 
 export interface FinancialRecord {
   id: string;
-  mes: number;
+  mes: string;
   ano: number;
   geracaoCaixa: number;
   valorCotacao: number;

@@ -1,31 +1,50 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { FinancialRecord } from '../types';
-import { DollarSign, BarChart3, TrendingUp, Info, Calendar } from 'lucide-react';
+import { DollarSign, BarChart3, TrendingUp, Info, Calendar, Filter } from 'lucide-react';
 
 const Finance: React.FC = () => {
   const { financial, addFinancialRecord, users } = useApp();
+
+  // Form State
+  const currentYear = new Date().getFullYear();
   const [newCash, setNewCash] = useState<number | ''>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    (new Date().getMonth() + 1).toString().padStart(2, '0')
+  );
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentMonthNum = new Date().getMonth() + 1;
-  const currentMonth = currentMonthNum < 10 ? `0${currentMonthNum}` : `${currentMonthNum}`;
-  const currentYear = new Date().getFullYear();
+  // Filter State
+  const [filterMonth, setFilterMonth] = useState<string>('');
+  const [filterYear, setFilterYear] = useState<number | ''>('');
 
-  // Logic to find previous month
-  const prevMonthNum = currentMonthNum === 1 ? 12 : currentMonthNum - 1;
+  const monthsNames = [
+    { value: '01', label: 'Janeiro' },
+    { value: '02', label: 'Fevereiro' },
+    { value: '03', label: 'Março' },
+    { value: '04', label: 'Abril' },
+    { value: '05', label: 'Maio' },
+    { value: '06', label: 'Junho' },
+    { value: '07', label: 'Julho' },
+    { value: '08', label: 'Agosto' },
+    { value: '09', label: 'Setembro' },
+    { value: '10', label: 'Outubro' },
+    { value: '11', label: 'Novembro' },
+    { value: '12', label: 'Dezembro' }
+  ];
+
+  // Logic to find previous month relative to SELECTED date
+  const selectedMonthNum = parseInt(selectedMonth);
+  const prevMonthNum = selectedMonthNum === 1 ? 12 : selectedMonthNum - 1;
   const prevMonthStr = prevMonthNum < 10 ? `0${prevMonthNum}` : `${prevMonthNum}`;
-  const prevYear = currentMonthNum === 1 ? currentYear - 1 : currentYear;
+  const prevYear = selectedMonthNum === 1 ? selectedYear - 1 : selectedYear;
 
   const prevRecord = financial.find(f => f.mes === prevMonthStr && f.ano === prevYear);
-  const cmPrev = prevRecord ? prevRecord.valorCotacao : 1.0; // Default to 1.0 if no history
+  const cmPrev = prevRecord ? prevRecord.valorCotacao : 1.0;
 
   const sg = users.reduce((acc, u) => acc + (u.saldoAtual || 0), 0);
 
   const calculateQuotation = (gc: number) => {
-    // Formula: VM = ((GC - (SG * CM_prev)) / 10000) / 100
-    // New CM = CM_prev + VM
     const liability = sg * cmPrev;
     const surplus = gc - liability;
     const vm = (surplus / 10000) / 100;
@@ -41,43 +60,80 @@ const Finance: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // Using the calculated quotation from the new formula
     const success = await addFinancialRecord({
-      mes: currentMonth,
-      ano: currentYear,
+      mes: selectedMonth,
+      ano: selectedYear,
       geracaoCaixa: Number(newCash),
       valorCotacao: parseFloat(newCm.toFixed(4))
     });
 
     if (success) {
       setNewCash('');
+      // Optional: success notification handled by context
     }
     setIsSubmitting(false);
   };
 
   const latestRecord = financial[0];
-  const monthsNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-  // Gera lista de 12 meses sempre fixa para a tabela
-  const displayRecords = monthsNames.map((name, index) => {
-    const monthNum = index + 1;
-    const monthStr = monthNum < 10 ? `0${monthNum}` : `${monthNum}`;
-    const record = financial.find(f => f.mes === monthStr && f.ano === currentYear);
-    return {
-      monthName: name,
-      record: record || null,
-      monthIndex: index + 1
-    };
-  });
+  // Filtered History
+  const filteredRecords = useMemo(() => {
+    let records = financial;
+    if (filterMonth) {
+      records = records.filter(f => f.mes === filterMonth);
+    }
+    if (filterYear) {
+      records = records.filter(f => f.ano === Number(filterYear));
+    }
+    return records;
+  }, [financial, filterMonth, filterYear]);
+
+  // If no filters are active, show standard 12-month view for current year (or filtered year)
+  // But user requested "Option search by month and year", which implies a list view might be better when filtering.
+  // However, keeping the table structure consistent is good. 
+  // Let's adapt: If filtered, show just the matches. If not, show the "Dashboard View" (all months of current year).
+
+  const displayRecords = useMemo(() => {
+    // If specific filters are active, just verify if we want to show a list or the calendar view.
+    // The previous implementation showed a fixed 12-month calendar for the current year.
+    // Let's keep the calendar view but controlled by the year filter (defaulting to current).
+
+    const targetYear = (filterYear && typeof filterYear === 'number') ? filterYear : currentYear;
+
+    if (filterMonth) {
+      // If filtering by month, just show that single record if it exists, or the empty month slot
+      const mObj = monthsNames.find(m => m.value === filterMonth);
+      if (!mObj) return [];
+
+      const record = financial.find(f => f.mes === filterMonth && f.ano === targetYear);
+      return [{
+        monthName: mObj.label,
+        record: record || null,
+        monthIndex: parseInt(filterMonth)
+      }];
+    }
+
+    // Default: Show all 12 months for the target year
+    return monthsNames.map((m) => {
+      const record = financial.find(f => f.mes === m.value && f.ano === targetYear);
+      return {
+        monthName: m.label,
+        record: record || null,
+        monthIndex: parseInt(m.value)
+      };
+    });
+  }, [financial, filterMonth, filterYear, currentYear]);
+
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
       <header>
-        <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Financial Ops</h1>
-        <p className="text-ui-muted mt-1 font-medium">Gestão de lastro e cotação algorítmica da moeda.</p>
+        <h1 className="text-4xl font-black tracking-tighter text-white uppercase">Financeiro</h1>
+        <p className="text-ui-muted mt-1 font-medium">Lançamento de dados do fluxo de caixa.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Card 1: Cotação Atual */}
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/20 bg-black shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
             <TrendingUp size={64} className="text-brand-primary" />
@@ -87,26 +143,51 @@ const Finance: React.FC = () => {
             <span className="text-5xl font-black text-brand-primary neon-text">R$ {latestRecord?.valorCotacao || '1.00'}</span>
             <span className="text-xs text-brand-primary mb-2 flex items-center font-bold">
               <TrendingUp className="w-3 h-3 mr-1" />
-              {latestRecord ? `+${((latestRecord.valorCotacao - (prevRecord?.valorCotacao || 1)) / (prevRecord?.valorCotacao || 1) * 100).toFixed(2)}%` : '0%'}
+              {/* Comparing with previous record of the sorted list, or 1.0 */}
+              {latestRecord && financial.length > 1
+                ? `+${((latestRecord.valorCotacao - financial[1].valorCotacao) / financial[1].valorCotacao * 100).toFixed(2)}%`
+                : '0%'}
             </span>
           </div>
           <p className="text-[9px] text-ui-muted mt-6 uppercase font-bold tracking-widest border-t border-white/5 pt-4">Sincronizado com os lucros do mês</p>
         </div>
 
+        {/* Card 2: Caixa Acumulado */}
         <div className="glass-card p-8 rounded-[32px] border border-white/10 bg-black shadow-2xl">
           <p className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] mb-2">Caixa Acumulado ({currentYear})</p>
           <div className="flex items-end gap-2">
-            <span className="text-5xl font-black text-white">R$ {financial.reduce((acc, curr) => acc + curr.geracaoCaixa, 0).toLocaleString()}</span>
+            <span className="text-5xl font-black text-white">R$ {financial.filter(f => f.ano === currentYear).reduce((acc, curr) => acc + curr.geracaoCaixa, 0).toLocaleString()}</span>
           </div>
           <p className="text-[9px] text-ui-muted mt-6 uppercase font-bold tracking-widest border-t border-white/5 pt-4">Consolidação anual de ativos</p>
         </div>
 
+        {/* Card 3: Lançar Resultados */}
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/30 bg-brand-primary/5 shadow-[0_0_30px_rgba(119,194,85,0.05)]">
           <h3 className="font-black text-sm uppercase tracking-widest flex items-center gap-3 mb-6 text-brand-primary">
             <DollarSign className="w-5 h-5" />
             Lançar Resultados
           </h3>
           <form onSubmit={handleAddRecord} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(e.target.value)}
+                className="bg-black border border-brand-primary/20 rounded-2xl p-3 outline-none focus:border-brand-primary text-sm font-bold text-white text-center appearance-none"
+                style={{ textAlignLast: 'center' }}
+              >
+                {monthsNames.map(m => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                value={selectedYear}
+                onChange={e => setSelectedYear(Number(e.target.value))}
+                className="bg-black border border-brand-primary/20 rounded-2xl p-3 outline-none focus:border-brand-primary text-sm font-bold text-white text-center"
+                placeholder="Ano"
+              />
+            </div>
+
             <div className="relative">
               <input
                 type="number"
@@ -118,11 +199,11 @@ const Finance: React.FC = () => {
               {newCash !== '' && (
                 <div className="mt-2 p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-ui-muted space-y-1">
                   <div className="flex justify-between">
-                    <span>Cotação Anterior:</span>
+                    <span>Base (Referência {prevMonthStr}/{prevYear}):</span>
                     <span className="font-bold text-white">R$ {cmPrev.toFixed(4)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Variação do Mês (VM):</span>
+                    <span>Variação (VM):</span>
                     <span className={`font-bold ${vm >= 0 ? 'text-brand-primary' : 'text-semantic-error'}`}>{vm >= 0 ? '+' : ''}{vm.toFixed(4)}</span>
                   </div>
                   <div className="flex justify-between border-t border-white/10 pt-1 mt-1">
@@ -132,6 +213,7 @@ const Finance: React.FC = () => {
                 </div>
               )}
             </div>
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -147,14 +229,41 @@ const Finance: React.FC = () => {
         </div>
       </div>
 
+      {/* Histórico Table */}
       <div className="glass-card rounded-[32px] border border-white/10 overflow-hidden bg-black shadow-2xl">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+        <div className="p-6 border-b border-white/5 flex flex-col md:flex-row items-center justify-between bg-white/5 gap-4">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-6 h-6 text-brand-primary" />
-            <h3 className="font-black uppercase tracking-widest text-sm">Histórico Mensal ({currentYear})</h3>
+            <h3 className="font-black uppercase tracking-widest text-sm">Histórico Mensal</h3>
           </div>
-          <Calendar className="text-ui-muted w-5 h-5" />
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 bg-black rounded-xl border border-white/10">
+              <Filter className="w-4 h-4 text-ui-muted" />
+              <select
+                value={filterMonth}
+                onChange={e => setFilterMonth(e.target.value)}
+                className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer border-none"
+              >
+                <option value="">Todos os Meses</option>
+                {monthsNames.map(m => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-black rounded-xl border border-white/10">
+              <Calendar className="w-4 h-4 text-ui-muted" />
+              <input
+                type="number"
+                value={filterYear}
+                onChange={e => setFilterYear(e.target.value ? Number(e.target.value) : '')}
+                placeholder={currentYear.toString()}
+                className="bg-transparent text-xs font-bold text-white outline-none w-16 border-none"
+              />
+            </div>
+          </div>
         </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -167,7 +276,7 @@ const Finance: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-white/5">
               {displayRecords.map(item => (
-                <tr key={item.monthIndex} className="bg-black hover:bg-brand-primary/5 transition-all group">
+                <tr key={`${item.monthIndex}-${filterYear || currentYear}`} className="bg-black hover:bg-brand-primary/5 transition-all group">
                   <td className="p-6 font-bold text-sm text-white group-hover:text-brand-primary transition-colors">{item.monthName}</td>
                   <td className="p-6 text-sm font-medium text-ui-muted group-hover:text-white transition-colors">
                     {item.record ? `R$ ${item.record.geracaoCaixa.toLocaleString()}` : <span className="opacity-20">Aguardando dados...</span>}
@@ -192,6 +301,11 @@ const Finance: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {displayRecords.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-ui-muted text-xs uppercase tracking-widest">Nenhum registro encontrado para este período.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -200,4 +314,5 @@ const Finance: React.FC = () => {
   );
 };
 
+export default Finance;
 export default Finance;
