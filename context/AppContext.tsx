@@ -152,7 +152,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (finRes.data) {
         setFinancial(finRes.data.map(f => ({
           id: f.id,
-          mes: f.mes,
+          mes: f.mes.toString().padStart(2, '0'), // Normalize to "01", "02" etc
           ano: f.ano,
           geracaoCaixa: Number(f.geracao_caixa),
           valorCotacao: Number(f.valor_cotacao)
@@ -595,7 +595,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const filtered = prev.filter(f => !(f.mes === data.mes && f.ano === data.ano));
           return [{
             id: data.id,
-            mes: data.mes,
+            mes: data.mes.toString().padStart(2, '0'),
             ano: data.ano,
             geracaoCaixa: Number(data.geracao_caixa),
             valorCotacao: Number(data.valor_cotacao)
