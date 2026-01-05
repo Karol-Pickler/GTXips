@@ -16,7 +16,7 @@ const Finance: React.FC = () => {
 
   // Filter State
   const [filterMonth, setFilterMonth] = useState<string>('');
-  const [filterYear, setFilterYear] = useState<number | ''>('');
+  const [filterYear, setFilterYear] = useState<number>(currentYear);
 
   const monthsNames = [
     { value: '01', label: 'Janeiro' },
@@ -85,6 +85,12 @@ const Finance: React.FC = () => {
 
   const latestRecord = financial[0];
 
+  const availableYears = useMemo(() => {
+    const years = Array.from(new Set(financial.map(f => f.ano)));
+    if (!years.includes(currentYear)) years.push(currentYear);
+    return years.sort((a: number, b: number) => b - a);
+  }, [financial, currentYear]);
+
   // Filtered History
   const filteredRecords = useMemo(() => {
     let records = financial;
@@ -92,7 +98,7 @@ const Finance: React.FC = () => {
       records = records.filter(f => f.mes === filterMonth);
     }
     if (filterYear) {
-      records = records.filter(f => f.ano === Number(filterYear));
+      records = records.filter(f => f.ano === filterYear);
     }
     return records;
   }, [financial, filterMonth, filterYear]);
@@ -274,13 +280,15 @@ const Finance: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 px-3 py-2 bg-black rounded-xl border border-white/10">
               <Calendar className="w-4 h-4 text-ui-muted" />
-              <input
-                type="number"
+              <select
                 value={filterYear}
-                onChange={e => setFilterYear(e.target.value ? Number(e.target.value) : '')}
-                placeholder={currentYear.toString()}
-                className="bg-transparent text-xs font-bold text-white outline-none w-16 border-none"
-              />
+                onChange={e => setFilterYear(Number(e.target.value))}
+                className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer border-none"
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
