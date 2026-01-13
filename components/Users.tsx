@@ -2,13 +2,37 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { User, UserRole } from '../types';
-import { UserPlus, Pencil, Trash2, Calendar, Shield } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Calendar, Shield, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '../services/supabase';
+
+interface NewCollaborator {
+  email: string;
+  password: string;
+  nome: string;
+  cargo: string;
+  role: UserRole;
+  dataNascimento: string;
+  dataContratacao: string;
+  fotoUrl: string;
+}
 
 const Users: React.FC = () => {
-  const { users, upsertProfile, deleteProfile } = useApp();
+  const { users, upsertProfile, deleteProfile, notify, currentUser } = useApp();
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isNewFormOpen, setIsNewFormOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newCollaborator, setNewCollaborator] = useState<NewCollaborator>({
+    email: '',
+    password: '',
+    nome: '',
+    cargo: '',
+    role: 'user',
+    dataNascimento: '',
+    dataContratacao: '',
+    fotoUrl: ''
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +43,57 @@ const Users: React.FC = () => {
     if (success) {
       setIsFormOpen(false);
       setEditingUser(null);
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleCreateCollaborator = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCollaborator.email || !newCollaborator.password || !newCollaborator.nome) {
+      notify('Preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
+
+    if (newCollaborator.password.length < 6) {
+      notify('A senha deve ter pelo menos 6 caracteres.', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch('https://fuyhqfoteehnexvndbvj.supabase.co/functions/v1/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify(newCollaborator)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao criar colaborador');
+      }
+
+      notify('Colaborador cadastrado com sucesso!', 'success');
+      setIsNewFormOpen(false);
+      setNewCollaborator({
+        email: '',
+        password: '',
+        nome: '',
+        cargo: '',
+        role: 'user',
+        dataNascimento: '',
+        dataContratacao: '',
+        fotoUrl: ''
+      });
+      // Refresh the page to load new user
+      window.location.reload();
+    } catch (error: any) {
+      notify(error.message || 'Erro ao criar colaborador.', 'error');
     }
     setIsSubmitting(false);
   };
@@ -36,13 +111,134 @@ const Users: React.FC = () => {
           <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Staff Management</h1>
           <p className="text-ui-muted mt-1 font-medium">Controle de acessos e permissões de nível sistêmico.</p>
         </div>
-        {/* Note: In a real Supabase app, users sign up themselves via the Login page. 
-            Admin user management requires Edge Functions or service roles. */}
-        <div className="flex items-center gap-3 bg-brand-primary/10 border border-brand-primary/20 px-6 py-4 rounded-2xl text-brand-primary text-xs font-bold italic">
-          <Shield className="w-5 h-5" />
-          Para novos acessos, peça ao colaborador para se registrar na tela de login.
-        </div>
+        {currentUser?.role === 'admin' && (
+          <button
+            onClick={() => setIsNewFormOpen(true)}
+            className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 text-black px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02] shadow-xl shadow-brand-primary/20"
+          >
+            <UserPlus className="w-5 h-5" />
+            Cadastrar Novo Colaborador
+          </button>
+        )}
       </header>
+
+      {/* New Collaborator Registration Form */}
+      {isNewFormOpen && (
+        <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
+          <h3 className="text-xs font-black uppercase tracking-[0.3em] text-brand-primary mb-8 underline decoration-brand-primary/20 underline-offset-8">Cadastro de Novo Colaborador</h3>
+          <form onSubmit={handleCreateCollaborator} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Nome Completo *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Nome do colaborador"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
+                  value={newCollaborator.nome}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, nome: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">E-mail Corporativo *</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="email@empresa.com"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
+                  value={newCollaborator.email}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Senha de Acesso *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
+                    value={newCollaborator.password}
+                    onChange={e => setNewCollaborator(prev => ({ ...prev, password: e.target.value }))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-ui-muted hover:text-brand-primary transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Cargo / Squad</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Desenvolvedor Frontend"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
+                  value={newCollaborator.cargo}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, cargo: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Data Nascimento</label>
+                <input
+                  type="date"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold invert-[0.9] md:invert-0"
+                  value={newCollaborator.dataNascimento}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, dataNascimento: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Data de Admissão</label>
+                <input
+                  type="date"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                  value={newCollaborator.dataContratacao}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, dataContratacao: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Nível de Acesso</label>
+                <select
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary appearance-none text-white font-bold cursor-pointer"
+                  value={newCollaborator.role}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, role: e.target.value as UserRole }))}
+                >
+                  <option value="user">USER / COLABORADOR</option>
+                  <option value="admin">ROOT / ADMINISTRADOR</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">URL Avatar (Link)</label>
+                <input
+                  type="text"
+                  placeholder="https://exemplo.com/foto.jpg"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
+                  value={newCollaborator.fotoUrl}
+                  onChange={e => setNewCollaborator(prev => ({ ...prev, fotoUrl: e.target.value }))}
+                />
+              </div>
+              <div className="flex flex-col gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-brand-primary disabled:opacity-50 text-black font-black p-4 rounded-2xl shadow-xl shadow-brand-primary/10 hover:scale-[1.02] transition-all"
+                >
+                  {isSubmitting ? 'CADASTRANDO...' : 'CADASTRAR COLABORADOR'}
+                </button>
+                <button type="button" onClick={() => setIsNewFormOpen(false)} className="w-full bg-white/5 border border-white/10 text-ui-muted font-bold p-4 rounded-2xl hover:text-white hover:bg-white/10 transition-all">CANCELAR</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       {isFormOpen && (
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
