@@ -13,15 +13,33 @@ const Dashboard: React.FC = () => {
   const { users, financial, transactions } = useApp();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Garante que o gráfico sempre mostre os 12 meses
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const fullChartData = months.map((month, index) => {
-    const monthStr = index + 1 < 10 ? `0${index + 1}` : `${index + 1}`;
-    const record = financial.find(f => f.mes === monthStr);
+
+  // Process data for charts (Last 12 records)
+  const sortedFinancial = [...financial].sort((a, b) => {
+    if (a.ano !== b.ano) return a.ano - b.ano;
+    return parseInt(a.mes) - parseInt(b.mes);
+  });
+
+  const last12 = sortedFinancial.slice(-13); // Need 13 to calc variation for 12
+
+  const chartData = last12.slice(1).map((record, index) => {
+    const prev = last12[index]; // since sliced, index aligns with prev
+    const currentQuote = record.valorCotacao;
+    const prevQuote = prev.valorCotacao;
+
+    const variation = prevQuote > 0 ? ((currentQuote - prevQuote) / prevQuote) : 0;
+
+    // For accumulated, compare with the start of the period (index 0 of last12)
+    const startQuote = last12[0].valorCotacao;
+    const accumulated = startQuote > 0 ? ((currentQuote - startQuote) / startQuote) : 0;
+
     return {
-      name: month,
-      valor: record ? record.geracaoCaixa : 0,
-      cotacao: record ? record.valorCotacao * 1000 : 0
+      name: `${months[parseInt(record.mes) - 1]}`, // Month name
+      fullDate: `${months[parseInt(record.mes) - 1]} ${record.ano}`,
+      variation: variation * 100, // Convert to %
+      accumulated: accumulated * 100,
+      valor: record.geracaoCaixa
     };
   });
 
@@ -44,21 +62,22 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/10 shadow-2xl">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="font-black text-xs uppercase tracking-[0.2em] text-ui-muted">Geração de Caixa Anual (R$)</h3>
+            <h3 className="font-black text-xs uppercase tracking-[0.2em] text-ui-muted">Variação Mensal GTXIPS (12 Meses)</h3>
             <div className="p-2 bg-brand-primary/10 rounded-lg"><TrendingUp className="text-brand-primary w-4 h-4" /></div>
           </div>
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={fullChartData}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis dataKey="name" stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} fontClassName="font-bold uppercase" />
-                <YAxis stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} />
+                <XAxis dataKey="fullDate" stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} fontClassName="font-bold uppercase" />
+                <YAxis stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val.toFixed(1)}%`} />
                 <Tooltip
                   cursor={{ fill: '#77c25508' }}
                   contentStyle={{ backgroundColor: '#121612', borderColor: '#77c25544', borderRadius: '16px', color: '#fff', fontWeight: 'bold' }}
                   itemStyle={{ color: '#77c255' }}
+                  formatter={(val: number) => [`${val.toFixed(2)}%`, 'Variação']}
                 />
-                <Bar dataKey="valor" fill="#77c255" radius={[4, 4, 0, 0]} barSize={24} />
+                <Bar dataKey="variation" fill="#77c255" radius={[4, 4, 0, 0]} barSize={24} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -66,12 +85,12 @@ const Dashboard: React.FC = () => {
 
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/10 shadow-2xl">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="font-black text-xs uppercase tracking-[0.2em] text-ui-muted">Valorização da Moeda (GTX)</h3>
+            <h3 className="font-black text-xs uppercase tracking-[0.2em] text-ui-muted">Variação Acumulada GTXIPS (12 Meses)</h3>
             <div className="p-2 bg-brand-primary/10 rounded-lg"><ArrowUpRight className="text-brand-primary w-4 h-4" /></div>
           </div>
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={fullChartData}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorCotDash" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#77c255" stopOpacity={0.4} />
@@ -79,12 +98,13 @@ const Dashboard: React.FC = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis dataKey="name" stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} />
+                <XAxis dataKey="fullDate" stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#95a1ac" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val.toFixed(1)}%`} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#121612', borderColor: '#77c25544', borderRadius: '16px', borderWeight: '2px' }}
+                  formatter={(val: number) => [`${val.toFixed(2)}%`, 'Acumulado']}
                 />
-                <Area type="monotone" dataKey="cotacao" stroke="#77c255" fillOpacity={1} fill="url(#colorCotDash)" strokeWidth={4} />
+                <Area type="monotone" dataKey="accumulated" stroke="#77c255" fillOpacity={1} fill="url(#colorCotDash)" strokeWidth={4} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

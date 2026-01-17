@@ -27,6 +27,7 @@ interface AppContextType {
   resetPassword: (email: string) => Promise<boolean>;
   updatePassword: (newPassword: string) => Promise<boolean>;
   updateProfile: (profile: Partial<User>) => Promise<boolean>;
+  uploadAvatar: (file: File) => Promise<string | null>;
   addTransaction: (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => Promise<boolean>;
   updateTransaction: (transaction: Transaction) => Promise<boolean>;
   notify: (message: string, type?: NotificationType) => void;
@@ -386,6 +387,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCurrentUser(prev => prev ? { ...prev, ...profileUpdate } : null);
     notify('Perfil atualizado!', 'success');
     return true;
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!currentUser) return null;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${currentUser.id}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      console.error('Error uploading avatar:', uploadError);
+      notify(`Erro ao fazer upload da imagem: ${uploadError.message}`, 'error');
+      return null;
+    }
+
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    return data.publicUrl;
   };
 
   const addTransaction = async (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => {
@@ -908,7 +930,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications,
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities,
-      login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, updateTransaction, notify, removeNotification,
+      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData

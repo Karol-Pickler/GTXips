@@ -17,7 +17,7 @@ interface NewCollaborator {
 }
 
 const Users: React.FC = () => {
-  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData } = useApp();
+  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData, uploadAvatar } = useApp();
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -101,6 +101,29 @@ const Users: React.FC = () => {
   const handleDeleteUser = async (id: string) => {
     if (confirm('Deseja realmente remover este agente do sistema?')) {
       await deleteProfile(id);
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
+      // Preview logic (optional, for now just notify)
+      notify('Fazendo upload da imagem...', 'info');
+
+      try {
+        const publicUrl = await uploadAvatar(file);
+        if (publicUrl) {
+          if (isNew) {
+            setNewCollaborator(prev => ({ ...prev, fotoUrl: publicUrl }));
+          } else {
+            setEditingUser(prev => ({ ...prev, fotoUrl: publicUrl }));
+          }
+          notify('Imagem carregada com sucesso!', 'success');
+        }
+      } catch (err) {
+        notify('Erro ao carregar imagem.', 'error');
+      }
     }
   };
 
@@ -230,14 +253,18 @@ const Users: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">URL Avatar (Link)</label>
-                <input
-                  type="text"
-                  placeholder="https://exemplo.com/foto.jpg"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
-                  value={newCollaborator.fotoUrl}
-                  onChange={e => setNewCollaborator(prev => ({ ...prev, fotoUrl: e.target.value }))}
-                />
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Avatar (Upload)</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleAvatarChange(e, true)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 text-xs text-ui-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-brand-primary file:text-black hover:file:bg-brand-primary/80 transition-all cursor-pointer"
+                  />
+                  {newCollaborator.fotoUrl && (
+                    <img src={newCollaborator.fotoUrl} alt="Preview" className="w-10 h-10 rounded-full border border-brand-primary object-cover" />
+                  )}
+                </div>
               </div>
               <div className="flex flex-col gap-3 pt-4">
                 <button
@@ -327,13 +354,18 @@ const Users: React.FC = () => {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">URL Avatar (Link)</label>
-                <input
-                  type="text"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
-                  value={editingUser?.fotoUrl || ''}
-                  onChange={e => setEditingUser(prev => ({ ...prev, fotoUrl: e.target.value }))}
-                />
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Avatar (Upload)</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleAvatarChange(e, false)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 text-xs text-ui-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-brand-primary file:text-black hover:file:bg-brand-primary/80 transition-all cursor-pointer"
+                  />
+                  {editingUser?.fotoUrl && (
+                    <img src={editingUser.fotoUrl} alt="Preview" className="w-10 h-10 rounded-full border border-brand-primary object-cover" />
+                  )}
+                </div>
               </div>
               <div className="flex flex-col gap-3 pt-4">
                 <button
