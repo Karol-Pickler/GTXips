@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign, Calendar, Pencil, X } from 'lucide-react';
 import { Transaction } from '../types';
 
 const Transactions: React.FC = () => {
-  const { users, rules, transactions, addTransaction, updateTransaction, currentUser } = useApp();
+  const { users, rules, transactions, addTransaction, updateTransaction, currentUser, setPageTitle } = useApp();
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedRule, setSelectedRule] = useState('');
   const [manualAmount, setManualAmount] = useState<number | ''>('');
@@ -15,6 +15,11 @@ const Transactions: React.FC = () => {
 
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setPageTitle('Histórico');
+  }, []);
+
 
   const handleManualLaunch = async (e: React.FormEvent) => {
     e.preventDefault();

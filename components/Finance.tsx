@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { FinancialRecord } from '../types';
 import { DollarSign, BarChart3, TrendingUp, Info, Calendar, Filter, Pencil, X } from 'lucide-react';
 
 const Finance: React.FC = () => {
-  const { financial, addFinancialRecord, updateFinancialRecord, users, currentUser } = useApp();
+  const { financial, addFinancialRecord, updateFinancialRecord, users, currentUser, setPageTitle } = useApp();
 
   // Form State
   const currentYear = new Date().getFullYear();
@@ -15,6 +15,10 @@ const Finance: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [editingRecord, setEditingRecord] = useState<FinancialRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setPageTitle('Financeiro');
+  }, []);
 
   // Filter State
   const [filterMonth, setFilterMonth] = useState<string>('');

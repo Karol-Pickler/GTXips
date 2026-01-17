@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Camera, Upload, Shield, Calendar, Mail, Briefcase, X, Check, Loader2 } from 'lucide-react';
 
@@ -9,6 +9,10 @@ const Profile: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    // Will implement pageTitle
+  }, []);
 
   if (!currentUser) return null;
 
@@ -88,10 +92,6 @@ const Profile: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in duration-500 pb-20">
-      <header>
-        <h1 className="text-3xl font-black tracking-tighter text-ui-text uppercase">Meu Perfil</h1>
-        <p className="text-ui-muted">Visualize seus dados e gerencie sua identidade visual.</p>
-      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Foto Card */}

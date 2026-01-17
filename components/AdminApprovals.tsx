@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Check, X, Award, ShoppingBag, Link as LinkIcon } from 'lucide-react';
 
@@ -33,12 +33,12 @@ const AdminApprovals: React.FC = () => {
    const pendingActivities = activities.filter(a => a.status === 'pendente');
    const pendingRescues = rescues.filter(r => r.status === 'pendente');
 
+   useEffect(() => {
+      // Will implement pageTitle
+   }, []);
+
    return (
       <div className="space-y-10 animate-in fade-in duration-500">
-         <header>
-            <h1 className="text-3xl font-bold">Fila de Aprovações</h1>
-            <p className="text-gray-400 text-lg">Valide as conquistas e solicitações dos colaboradores.</p>
-         </header>
 
          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <section className="space-y-6">

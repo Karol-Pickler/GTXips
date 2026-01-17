@@ -32,7 +32,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, setCurrentPage }) => {
-  const { currentUser, logout, rescues, activities, appNotifications } = useApp();
+  const { currentUser, logout, rescues, activities, appNotifications, pageTitle } = useApp();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -123,7 +123,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, setCurrentPage }
       {/* Main Container */}
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         {/* Desktop Top Header */}
-        <header className="hidden lg:flex items-center justify-end px-10 h-20 border-b border-white/5 bg-ui-bg/70 backdrop-blur-md sticky top-0 z-40">
+        <header className="hidden lg:flex items-center justify-between px-10 h-20 border-b border-white/5 bg-ui-bg/70 backdrop-blur-md sticky top-0 z-40">
+          <h2 className="text-xl font-black tracking-tight text-white uppercase italic animate-in fade-in slide-in-from-left-4 duration-500">{pageTitle}</h2>
+
           <div className="flex items-center gap-6">
             {/* Notifications Bell */}
             <div className="relative">
@@ -173,7 +175,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, setCurrentPage }
         <header className="lg:hidden fixed top-0 left-0 w-full bg-ui-surface/90 backdrop-blur-md border-b border-brand-primary/10 z-40 p-4 flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
             <Logo className="w-7 h-7" />
-            <h1 className="text-xl font-black text-brand-primary tracking-tighter">GTXIPS</h1>
+            <div className="flex flex-col">
+              <h1 className="text-sm font-black text-brand-primary tracking-tighter leading-none">GTXIPS</h1>
+              {pageTitle && <span className="text-[10px] font-bold text-white uppercase tracking-wider leading-none">{pageTitle}</span>}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {/* Mobile Notifications */}

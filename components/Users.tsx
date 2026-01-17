@@ -17,9 +17,13 @@ interface NewCollaborator {
 }
 
 const Users: React.FC = () => {
-  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData, uploadAvatar } = useApp();
+  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData, uploadAvatar, setPageTitle } = useApp();
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setPageTitle('Cadastro Colaboradores');
+  }, []);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isNewFormOpen, setIsNewFormOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -129,11 +133,7 @@ const Users: React.FC = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-700 pb-20">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-white uppercase">Cadastro Colaboradores</h1>
-          <p className="text-ui-muted mt-1 font-medium">Controle de acessos e permissões de nível sistêmico.</p>
-        </div>
+      <div className="flex justify-end">
         {currentUser?.role === 'admin' && (
           <button
             onClick={() => {
@@ -153,9 +153,10 @@ const Users: React.FC = () => {
           >
             <UserPlus className="w-5 h-5" />
             Cadastrar Novo Colaborador
+            Cadastrar Novo Colaborador
           </button>
         )}
-      </header>
+      </div>
 
       {/* New Collaborator Registration Form */}
       {isNewFormOpen && (

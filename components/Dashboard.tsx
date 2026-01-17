@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area
@@ -10,8 +10,12 @@ import { User } from '../types';
 import UserDetail from './UserDetail';
 
 const Dashboard: React.FC = () => {
-  const { users, financial, transactions } = useApp();
+  const { users, financial, transactions, setPageTitle } = useApp();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setPageTitle('Performance Hub');
+  }, []);
 
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -52,12 +56,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Performance Hub</h1>
-          <p className="text-ui-muted mt-1 font-medium">Métricas de tração e engajamento do ecossistema.</p>
-        </div>
-      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/10 shadow-2xl">

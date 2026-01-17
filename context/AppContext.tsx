@@ -15,6 +15,8 @@ interface AppContextType {
   activities: UserActivity[];
   notifications: Notification[];
   appNotifications: AppNotification[];
+  pageTitle: string;
+  setPageTitle: React.Dispatch<React.SetStateAction<string>>;
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
   setRules: React.Dispatch<React.SetStateAction<Rule[]>>;
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
@@ -58,6 +60,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [pageTitle, setPageTitle] = useState<string>('');
 
   const [rules, setRules] = useState<Rule[]>([]);
 
@@ -928,8 +931,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications,
-      setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities,
+      users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications, pageTitle,
+      setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities, setPageTitle,
       login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,

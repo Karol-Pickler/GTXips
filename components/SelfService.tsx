@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Dumbbell, ShoppingBag, Send, Search, Loader2, Link as LinkIcon, Clock, Sparkles } from 'lucide-react';
 import { UserActivity, RescueRequest } from '../types';
 import { searchBestPrice } from '../services/geminiService';
 
 const SelfService: React.FC = () => {
-  const { currentUser, rules, rescues, activities, financial, notify, addActivity, addRescue } = useApp();
+  const { currentUser, rules, rescues, activities, financial, notify, addActivity, addRescue, setPageTitle } = useApp();
 
   const [activityDate, setActivityDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedRuleId, setSelectedRuleId] = useState('');
@@ -27,6 +27,10 @@ const SelfService: React.FC = () => {
       d.getMonth() === currentMonth &&
       a.categoria.toLowerCase().includes('atividade física');
   }).length;
+
+  useEffect(() => {
+    setPageTitle('Meu Portal');
+  }, []);
 
   const handleAddActivity = async (e: React.FormEvent) => {
     e.preventDefault();

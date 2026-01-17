@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Rule, Recurrence } from '../types';
 import { Plus, Award, Trash2, Info, Pencil, X } from 'lucide-react';
@@ -9,6 +9,10 @@ const Rules: React.FC = () => {
   const [newRule, setNewRule] = useState<Partial<Rule>>({ categoria: '', valor: 0, descricao: '', recorrencia: 'Mensal', isSelfService: false });
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Will implement setPageTitle
+  }, []);
 
   const handleAddRule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +49,6 @@ const Rules: React.FC = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
-      <header>
-        <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Rules Engine</h1>
-        <p className="text-ui-muted mt-1 font-medium">Configuração de gatilhos e algoritmos de recompensa.</p>
-      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/30 bg-black shadow-2xl h-fit">
