@@ -225,8 +225,8 @@ const Users: React.FC = () => {
                   value={newCollaborator.role}
                   onChange={e => setNewCollaborator(prev => ({ ...prev, role: e.target.value as UserRole }))}
                 >
-                  <option value="user">USER / COLABORADOR</option>
-                  <option value="admin">ROOT / ADMINISTRADOR</option>
+                  <option value="user" className="bg-[#1a1a1a] text-white">USER / COLABORADOR</option>
+                  <option value="admin" className="bg-[#1a1a1a] text-white">ROOT / ADMINISTRADOR</option>
                 </select>
               </div>
               <div>
@@ -286,8 +286,8 @@ const Users: React.FC = () => {
                   value={editingUser?.role || 'user'}
                   onChange={e => setEditingUser(prev => ({ ...prev, role: e.target.value as UserRole }))}
                 >
-                  <option value="user">USER / COLABORADOR</option>
-                  <option value="admin">ROOT / ADMINISTRADOR</option>
+                  <option value="user" className="bg-[#1a1a1a] text-white">USER / COLABORADOR</option>
+                  <option value="admin" className="bg-[#1a1a1a] text-white">ROOT / ADMINISTRADOR</option>
                 </select>
               </div>
             </div>
