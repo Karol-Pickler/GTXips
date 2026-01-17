@@ -43,6 +43,7 @@ interface AppContextType {
   removeFinancialRecord: (id: string) => Promise<boolean>;
   upsertProfile: (profile: Partial<User>) => Promise<boolean>;
   deleteProfile: (id: string) => Promise<boolean>;
+  refreshData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -782,7 +783,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, removeRule, addFinancialRecord, removeFinancialRecord,
-      upsertProfile, deleteProfile
+      upsertProfile, deleteProfile, refreshData: fetchData
     }}>
       {children}
     </AppContext.Provider>

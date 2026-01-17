@@ -17,7 +17,7 @@ interface NewCollaborator {
 }
 
 const Users: React.FC = () => {
-  const { users, upsertProfile, deleteProfile, notify, currentUser } = useApp();
+  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData } = useApp();
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -90,8 +90,8 @@ const Users: React.FC = () => {
         dataContratacao: '',
         fotoUrl: ''
       });
-      // Refresh the page to load new user
-      window.location.reload();
+      // Refresh the users list without leaving the page
+      await refreshData();
     } catch (error: any) {
       notify(error.message || 'Erro ao criar colaborador.', 'error');
     }
