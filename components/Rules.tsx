@@ -83,10 +83,10 @@ const Rules: React.FC = () => {
                 value={newRule.recorrencia}
                 onChange={e => setNewRule(prev => ({ ...prev, recorrencia: e.target.value as Recurrence }))}
               >
-                <option value="Anual">ANUAL / CICLO ANUAL</option>
-                <option value="Mensal">MENSAL / CICLO MENSAL</option>
-                <option value="Única">ÚNICA / EVENTO ÚNICO</option>
-                <option value="Ad-hoc">AD-HOC / ESPORÁDICO</option>
+                <option value="Anual" className="bg-[#1a1a1a] text-white">ANUAL / CICLO ANUAL</option>
+                <option value="Mensal" className="bg-[#1a1a1a] text-white">MENSAL / CICLO MENSAL</option>
+                <option value="Única" className="bg-[#1a1a1a] text-white">ÚNICA / EVENTO ÚNICO</option>
+                <option value="Ad-hoc" className="bg-[#1a1a1a] text-white">AD-HOC / ESPORÁDICO</option>
               </select>
             </div>
             <div>
