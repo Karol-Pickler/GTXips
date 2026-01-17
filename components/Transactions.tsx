@@ -45,7 +45,7 @@ const Transactions: React.FC = () => {
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
       <header>
-        <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Ledger & Ops</h1>
+        <h1 className="text-4xl font-black tracking-tighter text-white uppercase">Lançamentos</h1>
         <p className="text-ui-muted mt-1 font-medium">Gestão manual de movimentações e auditoria de histórico.</p>
       </header>
 

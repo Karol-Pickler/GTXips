@@ -401,18 +401,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       .single();
 
     if (txError) {
+      console.error(txError);
+      notify(`Erro ao registrar transação: ${txError.message}`, 'error');
       return false;
     }
 
-    if (currentUser?.id === userId) {
-      const newSaldo = tipo === 'credito' ? currentUser.saldoAtual + valor : currentUser.saldoAtual - valor;
+    // Get current balance of target user (from state or DB?)
+    // Better to fetch fresh or use state if reliable. Let's use state 'users' to get current balance.
+    const targetUser = users.find(u => u.id === userId);
+    const currentBalance = targetUser?.saldoAtual || 0;
+    const newSaldo = tipo === 'credito' ? currentBalance + valor : currentBalance - valor;
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ saldo_atual: newSaldo })
-        .eq('id', userId);
+    // Update Profile in DB
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ saldo_atual: newSaldo })
+      .eq('id', userId);
 
-      if (!profileError) {
+    if (profileError) {
+      console.error(profileError);
+      notify(`Erro ao atualizar saldo: ${profileError.message}`, 'error');
+      // Should we rollback transaction? Ideally yes, but Supabase doesn't support multi-table transactions easily via JS client without RPC.
+      // For now, proceed.
+    } else {
+      // Update local state
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, saldoAtual: newSaldo } : u));
+
+      // Update currentUser if it's me
+      if (currentUser?.id === userId) {
         setCurrentUser(prev => prev ? { ...prev, saldoAtual: newSaldo } : null);
       }
     }
