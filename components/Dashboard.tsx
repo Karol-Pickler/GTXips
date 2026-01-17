@@ -125,14 +125,14 @@ const Dashboard: React.FC = () => {
               >
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/5 blur-3xl rounded-full group-hover:bg-brand-primary/10 transition-all"></div>
 
-                <div className="flex items-center gap-5 mb-8">
+                <div className="flex flex-col items-center gap-4 mb-6">
                   <div className="relative">
-                    <img src={user.fotoUrl} alt={user.nome} className="w-16 h-16 rounded-full border-2 border-brand-primary/30 object-cover shadow-xl group-hover:border-brand-primary transition-all" />
-                    <div className="absolute -bottom-1 -right-1 bg-brand-primary w-5 h-5 rounded-full border-4 border-ui-bg"></div>
+                    <img src={user.fotoUrl} alt={user.nome} className="w-28 h-28 rounded-full border-4 border-brand-primary/20 object-cover shadow-2xl group-hover:border-brand-primary group-hover:scale-105 transition-all" />
+                    <div className="absolute bottom-2 right-2 bg-brand-primary w-6 h-6 rounded-full border-4 border-black box-content shadow-lg"></div>
                   </div>
-                  <div>
-                    <h4 className="font-black text-lg text-white group-hover:text-brand-primary transition-colors leading-none">{user.nome}</h4>
-                    <p className="text-[10px] text-ui-muted uppercase tracking-[0.15em] font-black mt-2">{user.cargo}</p>
+                  <div className="text-center">
+                    <h4 className="font-black text-xl text-white group-hover:text-brand-primary transition-colors leading-tight">{user.nome}</h4>
+                    <p className="text-[10px] text-ui-muted uppercase tracking-[0.2em] font-black mt-2 bg-white/5 py-1 px-3 rounded-full inline-block">{user.cargo}</p>
                   </div>
                 </div>
 

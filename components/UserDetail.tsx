@@ -46,7 +46,7 @@ const UserDetail: React.FC<UserDetailProps> = ({ user, onClose }) => {
                 </div>
                 <div className="p-6 bg-brand-primary/5 border-t border-brand-primary/10 flex justify-between items-center">
                     <span className="text-ui-muted font-bold text-xs uppercase tracking-widest">Saldo em Carteira</span>
-                    <span className="text-3xl font-black text-brand-primary neon-text">{user.saldoAtual} GTX</span>
+                    <span className="text-3xl font-black text-brand-primary neon-text">{user.saldoAtual} GTXips</span>
                 </div>
             </div>
         </div>
