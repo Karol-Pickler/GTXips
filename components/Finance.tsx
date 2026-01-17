@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { DollarSign, BarChart3, TrendingUp, Info, Calendar, Filter } from 'lucide-react';
+import { FinancialRecord } from '../types';
+import { DollarSign, BarChart3, TrendingUp, Info, Calendar, Filter, Pencil, X } from 'lucide-react';
 
 const Finance: React.FC = () => {
-  const { financial, addFinancialRecord, users } = useApp();
+  const { financial, addFinancialRecord, updateFinancialRecord, users, currentUser } = useApp();
 
   // Form State
   const currentYear = new Date().getFullYear();
@@ -12,6 +13,7 @@ const Finance: React.FC = () => {
     (new Date().getMonth() + 1).toString().padStart(2, '0')
   );
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [editingRecord, setEditingRecord] = useState<FinancialRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter State
@@ -83,6 +85,17 @@ const Finance: React.FC = () => {
     setIsSubmitting(false);
   };
 
+  const handleUpdateRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRecord) return;
+    setIsSubmitting(true);
+    const success = await updateFinancialRecord(editingRecord);
+    if (success) {
+      setEditingRecord(null);
+    }
+    setIsSubmitting(false);
+  };
+
   const latestRecord = financial[0];
 
   const availableYears = useMemo(() => {
@@ -148,6 +161,69 @@ const Finance: React.FC = () => {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Edit Modal */}
+        {editingRecord && (
+          <div className="md:col-span-3 glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)] mb-8">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="font-black flex items-center gap-3 uppercase text-xs tracking-[0.2em] text-brand-primary">
+                <Pencil className="w-5 h-5" />
+                Editar Registro ({editingRecord.mes}/{editingRecord.ano})
+              </h3>
+              <button
+                onClick={() => setEditingRecord(null)}
+                className="text-ui-muted hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateRecord} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block">
+                  Caixa Gerado (R$)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                  value={editingRecord.geracaoCaixa}
+                  onChange={e => setEditingRecord(prev => prev ? { ...prev, geracaoCaixa: parseFloat(e.target.value) } : null)}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block">
+                  Valor da Cotação (GTX)
+                </label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-brand-primary font-black"
+                  value={editingRecord.valorCotacao}
+                  onChange={e => setEditingRecord(prev => prev ? { ...prev, valorCotacao: parseFloat(e.target.value) } : null)}
+                />
+              </div>
+
+              <div className="md:col-span-2 flex gap-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-brand-primary disabled:opacity-50 text-black font-black p-4 rounded-2xl shadow-xl shadow-brand-primary/10 hover:scale-[1.02] transition-all uppercase tracking-tighter"
+                >
+                  {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingRecord(null)}
+                  className="px-8 bg-white/5 border border-white/10 text-ui-muted font-bold p-4 rounded-2xl hover:text-white hover:bg-white/10 transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Card 1: Cotação Atual */}
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/20 bg-black shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
@@ -301,6 +377,7 @@ const Finance: React.FC = () => {
                 <th className="p-6 text-[10px] font-black text-ui-muted uppercase tracking-[0.2em]">Caixa Gerado</th>
                 <th className="p-6 text-[10px] font-black text-ui-muted uppercase tracking-[0.2em]">Valor do GTXip</th>
                 <th className="p-6 text-[10px] font-black text-ui-muted uppercase tracking-[0.2em] text-right">Status</th>
+                {currentUser?.role === 'admin' && <th className="p-6 text-[10px] font-black text-ui-muted uppercase tracking-[0.2em] text-center">Ações</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -328,6 +405,18 @@ const Finance: React.FC = () => {
                       </div>
                     )}
                   </td>
+                  {currentUser?.role === 'admin' && (
+                    <td className="p-6 text-center">
+                      {item.record && (
+                        <button
+                          onClick={() => setEditingRecord(item.record as FinancialRecord)}
+                          className="p-2 bg-white/5 text-ui-muted hover:text-brand-primary hover:bg-brand-primary/10 border border-white/5 rounded-xl transition-all"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
               {displayRecords.length === 0 && (

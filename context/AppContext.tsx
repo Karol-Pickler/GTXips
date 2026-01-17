@@ -41,6 +41,7 @@ interface AppContextType {
   updateRule: (rule: Rule) => Promise<boolean>;
   removeRule: (id: string) => Promise<boolean>;
   addFinancialRecord: (record: Omit<FinancialRecord, 'id'>) => Promise<boolean>;
+  updateFinancialRecord: (record: FinancialRecord) => Promise<boolean>;
   removeFinancialRecord: (id: string) => Promise<boolean>;
   upsertProfile: (profile: Partial<User>) => Promise<boolean>;
   deleteProfile: (id: string) => Promise<boolean>;
@@ -601,6 +602,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return false;
   };
 
+  const updateFinancialRecord = async (record: FinancialRecord) => {
+    try {
+      const { error } = await supabase
+        .from('financial')
+        .update({
+          geracao_caixa: record.geracaoCaixa,
+          valor_cotacao: record.valorCotacao
+        })
+        .eq('id', record.id);
+
+      if (error) throw error;
+
+      setFinancial(prev => prev.map(f => f.id === record.id ? record : f));
+      notify('Registro financeiro atualizado!', 'success');
+      return true;
+    } catch (err) {
+      console.error(err);
+      notify('Erro ao atualizar registro.', 'error');
+    }
+    return false;
+  };
+
   const addFinancialRecord = async (record: Omit<FinancialRecord, 'id'>) => {
     try {
       const { data, error } = await supabase
@@ -807,7 +830,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities,
       login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
-      addRule, updateRule, removeRule, addFinancialRecord, removeFinancialRecord,
+      addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData
     }}>
       {children}
