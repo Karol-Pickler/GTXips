@@ -138,7 +138,7 @@ const Users: React.FC = () => {
       {isNewFormOpen && (
         <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-brand-primary mb-8 underline decoration-brand-primary/20 underline-offset-8">Cadastro de Novo Colaborador</h3>
-          <form onSubmit={handleCreateCollaborator} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <form onSubmit={handleCreateCollaborator} autoComplete="off" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="space-y-6">
               <div>
                 <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Nome Completo *</label>
@@ -156,6 +156,7 @@ const Users: React.FC = () => {
                 <input
                   type="email"
                   required
+                  autoComplete="new-email"
                   placeholder="email@empresa.com"
                   className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
                   value={newCollaborator.email}
@@ -168,6 +169,7 @@ const Users: React.FC = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="new-password"
                     placeholder="Mínimo 6 caracteres"
                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 outline-none focus:border-brand-primary text-white font-bold placeholder:text-ui-muted/30"
                     value={newCollaborator.password}
