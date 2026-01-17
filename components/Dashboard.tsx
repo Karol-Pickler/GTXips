@@ -14,7 +14,7 @@ const Dashboard: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
-    setPageTitle('Performance Hub');
+    setPageTitle('Desempenho GTXips');
   }, []);
 
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -128,7 +128,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex flex-col items-center gap-4 mb-6">
                   <div className="relative">
                     <img src={user.fotoUrl} alt={user.nome} className="w-28 h-28 rounded-full border-4 border-brand-primary/20 object-cover shadow-2xl group-hover:border-brand-primary group-hover:scale-105 transition-all" />
-                    <div className="absolute bottom-2 right-2 bg-brand-primary w-6 h-6 rounded-full border-4 border-black box-content shadow-lg"></div>
+
                   </div>
                   <div className="text-center">
                     <h4 className="font-black text-xl text-white group-hover:text-brand-primary transition-colors leading-tight">{user.nome}</h4>
