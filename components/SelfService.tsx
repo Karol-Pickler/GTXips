@@ -142,8 +142,8 @@ const SelfService: React.FC = () => {
                   value={selectedRuleId}
                   onChange={e => setSelectedRuleId(e.target.value)}
                 >
-                  <option value="">Selecionar...</option>
-                  {rules.map(r => <option key={r.id} value={r.id}>{r.categoria} ({r.valor} GTX)</option>)}
+                  <option value="" className="bg-[#1a1a1a] text-white">Selecionar...</option>
+                  {rules.map(r => <option key={r.id} value={r.id} className="bg-[#1a1a1a] text-white">{r.categoria} ({r.valor} GTX)</option>)}
                 </select>
               </div>
             </div>

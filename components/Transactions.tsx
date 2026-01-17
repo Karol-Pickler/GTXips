@@ -79,8 +79,8 @@ const Transactions: React.FC = () => {
                 value={selectedUser}
                 onChange={e => setSelectedUser(e.target.value)}
               >
-                <option value="">Selecionar Agente...</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.nome} ({u.cargo})</option>)}
+                <option value="" className="bg-[#1a1a1a] text-white">Selecionar Agente...</option>
+                {users.map(u => <option key={u.id} value={u.id} className="bg-[#1a1a1a] text-white">{u.nome} ({u.cargo})</option>)}
               </select>
             </div>
 
@@ -100,8 +100,8 @@ const Transactions: React.FC = () => {
                   }
                 }}
               >
-                <option value="">Lançamento Manual Avulso</option>
-                {rules.map(r => <option key={r.id} value={r.id}>{r.categoria} (+{r.valor} GTX)</option>)}
+                <option value="" className="bg-[#1a1a1a] text-white">Lançamento Manual Avulso</option>
+                {rules.map(r => <option key={r.id} value={r.id} className="bg-[#1a1a1a] text-white">{r.categoria} (+{r.valor} GTX)</option>)}
               </select>
             </div>
 

@@ -195,7 +195,7 @@ const Finance: React.FC = () => {
                   style={{ textAlignLast: 'center' }}
                 >
                   {monthsNames.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
+                    <option key={m.value} value={m.value} className="bg-[#1a1a1a] text-white">{m.label}</option>
                   ))}
                 </select>
                 <input
@@ -272,9 +272,9 @@ const Finance: React.FC = () => {
                 onChange={e => setFilterMonth(e.target.value)}
                 className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer border-none"
               >
-                <option value="">Todos os Meses</option>
+                <option value="" className="bg-[#1a1a1a] text-white">Todos os Meses</option>
                 {monthsNames.map(m => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
+                  <option key={m.value} value={m.value} className="bg-[#1a1a1a] text-white">{m.label}</option>
                 ))}
               </select>
             </div>
@@ -286,7 +286,7 @@ const Finance: React.FC = () => {
                 className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer border-none"
               >
                 {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
+                  <option key={year} value={year} className="bg-[#1a1a1a] text-white">{year}</option>
                 ))}
               </select>
             </div>
