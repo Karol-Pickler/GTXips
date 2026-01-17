@@ -253,7 +253,7 @@ const Users: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Avatar (Upload)</label>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Foto (Upload)</label>
                 <div className="flex items-center gap-4">
                   <input
                     type="file"
@@ -354,7 +354,7 @@ const Users: React.FC = () => {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Avatar (Upload)</label>
+                <label className="block text-[10px] uppercase font-black text-ui-muted tracking-widest mb-2 ml-1">Foto (Upload)</label>
                 <div className="flex items-center gap-4">
                   <input
                     type="file"
