@@ -50,6 +50,7 @@ interface AppContextType {
   upsertProfile: (profile: Partial<User>) => Promise<boolean>;
   deleteProfile: (id: string) => Promise<boolean>;
   refreshData: () => Promise<void>;
+  recalculateBalance: (userId: string) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -411,6 +412,44 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
     return data.publicUrl;
+  };
+
+  const recalculateBalance = async (userId: string) => {
+    try {
+      // 1. Fetch all transactions for this user
+      const { data: userTransactions, error: txError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (txError) throw txError;
+
+      // 2. Calculate balance
+      const newBalance = userTransactions?.reduce((acc, tx) => {
+        const val = Number(tx.valor);
+        return tx.tipo === 'credito' ? acc + val : acc - val;
+      }, 0) || 0;
+
+      // 3. Update profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ saldo_atual: newBalance })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      // 4. Update local state
+      setUsers(prev => prev.map(u =>
+        u.id === userId ? { ...u, saldoAtual: newBalance } : u
+      ));
+
+      notify(`Saldo recalculado: ${newBalance} GTX`, 'success');
+      return true;
+    } catch (err: any) {
+      console.error('Error recalculating balance:', err);
+      notify(`Erro ao recalcular saldo: ${err.message}`, 'error');
+      return false;
+    }
   };
 
   const addTransaction = async (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => {
@@ -936,7 +975,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
-      upsertProfile, deleteProfile, refreshData: fetchData
+      upsertProfile, deleteProfile, refreshData: fetchData, recalculateBalance
     }}>
       {children}
     </AppContext.Provider>

@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { 
-  Shield, 
-  Gift, 
-  BookOpen, 
-  Presentation, 
-  Dumbbell, 
-  Calculator, 
-  TrendingUp, 
+import {
+  Shield,
+  Gift,
+  BookOpen,
+  Presentation,
+  Dumbbell,
+  Calculator,
+  TrendingUp,
   AlertCircle,
   HelpCircle,
   ShoppingBag,
@@ -34,7 +34,7 @@ const Regulamento: React.FC = () => {
         </h2>
         <div className="text-ui-text/80 leading-relaxed space-y-4 font-medium">
           <p>
-            Buscando uma forma inovadora e criativa de premiar os seus colaboradores pela participação em atividades de integração, 
+            Buscando uma forma inovadora e criativa de premiar os seus colaboradores pela participação em atividades de integração,
             a <span className="text-white font-bold">GTX Tecnologia</span> desenvolveu o sistema baseado em <span className="text-brand-primary font-bold neon-text text-lg">GTXips</span> (pontuação simbólica).
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -79,7 +79,7 @@ const Regulamento: React.FC = () => {
       {/* 3. Premiações */}
       <section className="space-y-8">
         <div className="flex items-center gap-4">
-          <h2 className="text-3xl font-black uppercase italic text-white underline decoration-brand-primary decoration-4 underline-offset-8">3. Premiações</h2>
+          <h2 className="text-3xl font-black uppercase text-white underline decoration-brand-primary decoration-4 underline-offset-8">Regulamento</h2>
           <div className="flex-1 h-px bg-white/10"></div>
         </div>
 
@@ -89,21 +89,21 @@ const Regulamento: React.FC = () => {
             <Gift className="w-8 h-8 text-brand-primary group-hover:scale-110 transition-transform" />
             <h3 className="text-xl font-black text-white uppercase tracking-tighter">Presentes</h3>
             <ul className="text-sm space-y-3 text-ui-muted font-bold">
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Start:</span> <span className="text-brand-primary">100 GTX</span></li>
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Aniversário:</span> <span className="text-brand-primary">75 GTX</span></li>
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Natal:</span> <span className="text-brand-primary">75 GTX</span></li>
-              <li className="flex justify-between"><span>Páscoa:</span> <span className="text-brand-primary">30 GTX</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Start:</span> <span className="text-brand-primary">100 GTXips</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Aniversário:</span> <span className="text-brand-primary">75 GTXips</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Natal:</span> <span className="text-brand-primary">75 GTXips</span></li>
+              <li className="flex justify-between"><span>Páscoa:</span> <span className="text-brand-primary">30 GTXips</span></li>
             </ul>
           </div>
 
           {/* 3.2 Desafios */}
           <div className="glass-card p-8 rounded-3xl space-y-4 border border-white/5 bg-black hover:border-brand-primary/40 transition-all group">
             <TrendingUp className="w-8 h-8 text-brand-primary group-hover:scale-110 transition-transform" />
-            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Desafios GTX</h3>
+            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Desafios GTXips</h3>
             <p className="text-[10px] text-ui-muted uppercase font-black tracking-widest">Incentivo à criatividade.</p>
             <ul className="text-sm space-y-3 text-ui-muted font-bold">
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Participação:</span> <span className="text-brand-primary">10 GTX</span></li>
-              <li className="flex justify-between"><span>Vencedor:</span> <span className="text-brand-primary">+20 GTX</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Participação:</span> <span className="text-brand-primary">10 GTXips</span></li>
+              <li className="flex justify-between"><span>Vencedor:</span> <span className="text-brand-primary">+20 GTXips</span></li>
             </ul>
           </div>
 
@@ -112,9 +112,9 @@ const Regulamento: React.FC = () => {
             <BookOpen className="w-8 h-8 text-brand-primary group-hover:scale-110 transition-transform" />
             <h3 className="text-xl font-black text-white uppercase tracking-tighter">Biblioteca</h3>
             <ul className="text-sm space-y-3 text-ui-muted font-bold">
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Solicitar livro:</span> <span className="text-brand-primary">5 GTX</span></li>
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Formulário:</span> <span className="text-brand-primary">10 GTX</span></li>
-              <li className="flex justify-between"><span>Sugestão:</span> <span className="text-brand-primary">20 GTX</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Solicitar livro:</span> <span className="text-brand-primary">5 GTXips</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Formulário:</span> <span className="text-brand-primary">10 GTXips</span></li>
+              <li className="flex justify-between"><span>Sugestão:</span> <span className="text-brand-primary">20 GTXips</span></li>
             </ul>
           </div>
 
@@ -123,19 +123,19 @@ const Regulamento: React.FC = () => {
             <Presentation className="w-8 h-8 text-brand-primary group-hover:scale-110 transition-transform" />
             <h3 className="text-xl font-black text-white uppercase tracking-tighter">Apresentações</h3>
             <ul className="text-sm space-y-3 text-ui-muted font-bold">
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Participação:</span> <span className="text-brand-primary">5 GTX</span></li>
-              <li className="flex justify-between"><span>Soluções:</span> <span className="text-brand-primary">20 GTX</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Participação:</span> <span className="text-brand-primary">5 GTXips</span></li>
+              <li className="flex justify-between"><span>Soluções:</span> <span className="text-brand-primary">20 GTXips</span></li>
             </ul>
           </div>
 
           {/* 3.5 Atletas */}
           <div className="glass-card p-8 rounded-3xl space-y-4 border border-white/5 bg-black hover:border-brand-primary/40 transition-all group">
             <Dumbbell className="w-8 h-8 text-brand-primary group-hover:scale-110 transition-transform" />
-            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Atletas GTX</h3>
+            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Atletas GTXips</h3>
             <ul className="text-sm space-y-3 text-ui-muted font-bold">
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Atividade:</span> <span className="text-brand-primary">1 GTX</span></li>
-              <li className="flex justify-between border-b border-white/5 pb-2"><span>Corrida:</span> <span className="text-brand-primary">2 GTX/km</span></li>
-              <li className="flex justify-between"><span>Campeão:</span> <span className="text-brand-primary">10 GTX</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Atividade:</span> <span className="text-brand-primary">1 GTXips</span></li>
+              <li className="flex justify-between border-b border-white/5 pb-2"><span>Corrida:</span> <span className="text-brand-primary">2 GTXips/km</span></li>
+              <li className="flex justify-between"><span>Campeão:</span> <span className="text-brand-primary">10 GTXips</span></li>
             </ul>
           </div>
 
@@ -159,10 +159,10 @@ const Regulamento: React.FC = () => {
           4. Valorização da Moeda
         </h2>
         <p className="text-ui-muted leading-relaxed font-medium italic text-lg border-l-2 border-brand-primary pl-6">
-          O saldo dos colaboradores tem impacto direto sobre a geração de caixa mensal. 
+          O saldo dos colaboradores tem impacto direto sobre a geração de caixa mensal.
           Se a empresa gera mais caixa, o saldo de todos valoriza exponencialmente.
         </p>
-        
+
         <div className="bg-black/80 p-8 rounded-3xl border border-brand-primary/30 font-mono text-center shadow-inner">
           <p className="text-[10px] text-brand-primary mb-6 uppercase font-black tracking-[0.3em]">Cálculo Sistêmico da GTXips</p>
           <div className="text-xl md:text-3xl text-white font-black break-all leading-tight">

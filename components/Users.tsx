@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { User, UserRole } from '../types';
-import { UserPlus, Pencil, Trash2, Calendar, Shield, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Calendar, Shield, Eye, EyeOff, RefreshCcw } from 'lucide-react';
 import { supabase } from '../services/supabase';
 
 interface NewCollaborator {
@@ -17,7 +17,7 @@ interface NewCollaborator {
 }
 
 const Users: React.FC = () => {
-  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData, uploadAvatar, setPageTitle } = useApp();
+  const { users, upsertProfile, deleteProfile, notify, currentUser, refreshData, uploadAvatar, setPageTitle, recalculateBalance } = useApp();
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -152,7 +152,6 @@ const Users: React.FC = () => {
             className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 text-black px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02] shadow-xl shadow-brand-primary/20"
           >
             <UserPlus className="w-5 h-5" />
-            Cadastrar Novo Colaborador
             Cadastrar Novo Colaborador
           </button>
         )}
@@ -418,9 +417,16 @@ const Users: React.FC = () => {
                       {user.dataContratacao || '---'}
                     </div>
                   </td>
-                  <td className="p-6 font-black text-brand-primary neon-text">{user.saldoAtual} GTX</td>
+                  <td className="p-6 font-black text-brand-primary neon-text">{user.saldoAtual} GTXips</td>
                   <td className="p-6 text-right">
                     <div className="flex justify-end gap-3">
+                      <button
+                        title="Recalcular Saldo"
+                        onClick={() => recalculateBalance(user.id)}
+                        className="p-3 bg-white/5 text-ui-muted hover:text-brand-secondary hover:bg-brand-secondary/10 border border-white/5 rounded-xl transition-all"
+                      >
+                        <RefreshCcw className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => { setEditingUser(user); setIsFormOpen(true); }}
                         className="p-3 bg-white/5 text-ui-muted hover:text-brand-primary hover:bg-brand-primary/10 border border-white/5 rounded-xl transition-all"

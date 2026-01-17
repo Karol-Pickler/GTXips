@@ -115,7 +115,7 @@ const SelfService: React.FC = () => {
           </div>
           <div>
             <p className="text-xs uppercase font-bold text-ui-muted">Saldo Disponível</p>
-            <p className="text-2xl font-black text-brand-primary">{currentUser?.saldoAtual} GTX</p>
+            <p className="text-2xl font-black text-brand-primary">{currentUser?.saldoAtual} GTXips</p>
           </div>
         </div>
       </header>
@@ -147,7 +147,7 @@ const SelfService: React.FC = () => {
                   onChange={e => setSelectedRuleId(e.target.value)}
                 >
                   <option value="" className="bg-[#1a1a1a] text-white">Selecionar...</option>
-                  {rules.map(r => <option key={r.id} value={r.id} className="bg-[#1a1a1a] text-white">{r.categoria} ({r.valor} GTX)</option>)}
+                  {rules.map(r => <option key={r.id} value={r.id} className="bg-[#1a1a1a] text-white">{r.categoria} ({r.valor} GTXips)</option>)}
                 </select>
               </div>
             </div>

@@ -79,7 +79,7 @@ const Rules: React.FC = () => {
               />
             </div>
             <div>
-              <label className="text-[10px] text-ui-muted uppercase font-black tracking-widest ml-1 mb-2 block">Valor Base (GTX)</label>
+              <label className="text-[10px] text-ui-muted uppercase font-black tracking-widest ml-1 mb-2 block">Valor Base (GTXips)</label>
               <input
                 type="number"
                 required
@@ -148,7 +148,7 @@ const Rules: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-widest ml-1 mb-2 block">Valor Base (GTX)</label>
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-widest ml-1 mb-2 block">Valor Base (GTXips)</label>
                   <input
                     type="number"
                     required
@@ -232,7 +232,7 @@ const Rules: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-black text-xl text-white group-hover:text-brand-primary transition-colors leading-none mb-2">{rule.categoria}</h4>
-                    <p className="text-3xl font-black text-brand-primary neon-text">{rule.valor} <span className="text-xs uppercase font-black tracking-widest">GTX</span></p>
+                    <p className="text-3xl font-black text-brand-primary neon-text">{rule.valor} <span className="text-xs uppercase font-black tracking-widest">GTXips</span></p>
                     <div className="flex items-center gap-2 mt-4">
                       <span className="text-[9px] bg-white/10 px-3 py-1 rounded-full text-ui-muted uppercase tracking-widest font-black group-hover:bg-brand-primary/20 group-hover:text-white transition-all">{rule.recorrencia}</span>
                       {rule.isSelfService && (

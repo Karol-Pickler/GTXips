@@ -11,8 +11,15 @@ const AdminApprovals: React.FC = () => {
       approveActivity,
       rejectActivity,
       approveRescue,
-      rejectRescue
+      rejectRescue,
+      setPageTitle
    } = useApp();
+
+   // ... handlers ...
+
+   useEffect(() => {
+      setPageTitle('Aprovações');
+   }, []);
 
    const handleApproveActivity = async (id: string) => {
       await approveActivity(id);
@@ -54,10 +61,10 @@ const AdminApprovals: React.FC = () => {
                         return (
                            <div key={a.id} className="glass-card p-4 rounded-2xl border border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 hover:border-brand-primary/20 transition-all">
                               <div className="flex items-center gap-4">
-                                 <img src={user?.fotoUrl} className="w-10 h-10 rounded-full border border-brand-primary/30" />
+                                 <img src={user?.fotoUrl} className="w-14 h-14 rounded-full border border-brand-primary/30 object-cover" />
                                  <div>
                                     <p className="font-bold">{user?.nome}</p>
-                                    <p className="text-xs text-ui-muted">{a.categoria} • <span className="text-brand-primary">{a.valor} GTX</span></p>
+                                    <p className="text-xs text-ui-muted">{a.categoria} • <span className="text-brand-primary">{a.valor} GTXips</span></p>
                                     <p className="text-[10px] text-ui-muted mt-1 uppercase font-bold">{a.data}</p>
                                  </div>
                               </div>
@@ -86,7 +93,7 @@ const AdminApprovals: React.FC = () => {
                            <div key={r.id} className="glass-card p-6 rounded-2xl border border-semantic-info/10 flex flex-col space-y-4 hover:border-semantic-info/30 transition-all">
                               <div className="flex justify-between items-start">
                                  <div className="flex items-center gap-3">
-                                    <img src={user?.fotoUrl} className="w-10 h-10 rounded-full" />
+                                    <img src={user?.fotoUrl} className="w-14 h-14 rounded-full object-cover" />
                                     <div>
                                        <p className="font-bold">{user?.nome}</p>
                                        <p className="text-xs text-ui-muted">Saldo: {user?.saldoAtual} GTX</p>
