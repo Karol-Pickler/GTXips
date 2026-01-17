@@ -1,16 +1,19 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign, Calendar, Pencil, X } from 'lucide-react';
+import { Transaction } from '../types';
 
 const Transactions: React.FC = () => {
-  const { users, rules, transactions, addTransaction } = useApp();
+  const { users, rules, transactions, addTransaction, updateTransaction, currentUser } = useApp();
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedRule, setSelectedRule] = useState('');
   const [manualAmount, setManualAmount] = useState<number | ''>('');
   const [manualReason, setManualReason] = useState('');
   const [type, setType] = useState<'credito' | 'debito'>('credito');
+  const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleManualLaunch = async (e: React.FormEvent) => {
@@ -30,7 +33,7 @@ const Transactions: React.FC = () => {
       reason = manualReason;
     }
 
-    const success = await addTransaction(selectedUser, amount, reason, type);
+    const success = await addTransaction(selectedUser, amount, reason, type, transactionDate);
 
     if (success) {
       // Reset form
@@ -38,6 +41,18 @@ const Transactions: React.FC = () => {
       setSelectedRule('');
       setManualAmount('');
       setManualReason('');
+      setTransactionDate(new Date().toISOString().split('T')[0]);
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleUpdateTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTransaction) return;
+    setIsSubmitting(true);
+    const success = await updateTransaction(editingTransaction);
+    if (success) {
+      setEditingTransaction(null);
     }
     setIsSubmitting(false);
   };
@@ -67,6 +82,19 @@ const Transactions: React.FC = () => {
                 onClick={() => setType('debito')}
                 className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${type === 'debito' ? 'bg-semantic-error text-white shadow-[0_0_15px_rgba(255,89,99,0.3)]' : 'text-ui-muted hover:text-white'}`}
               >Débito</button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] text-ui-muted uppercase font-black tracking-widest ml-1 flex items-center gap-2">
+                <Calendar size={12} className="text-brand-primary" /> Data do Lançamento
+              </label>
+              <input
+                type="date"
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold appearance-none"
+                value={transactionDate}
+                onChange={e => setTransactionDate(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
@@ -141,7 +169,81 @@ const Transactions: React.FC = () => {
           </form>
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Edit Modal */}
+          {editingTransaction && (
+            <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="font-black flex items-center gap-3 uppercase text-xs tracking-[0.2em] text-brand-primary">
+                  <Pencil className="w-5 h-5" />
+                  Editar Lançamento
+                </h3>
+                <button
+                  onClick={() => setEditingTransaction(null)}
+                  className="text-ui-muted hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleUpdateTransaction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block">
+                    Data
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                    value={editingTransaction.data}
+                    onChange={e => setEditingTransaction(prev => prev ? { ...prev, data: e.target.value } : null)}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block">
+                    Valor (GTX)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                    value={editingTransaction.valor}
+                    onChange={e => setEditingTransaction(prev => prev ? { ...prev, valor: Number(e.target.value) } : null)}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block">
+                    Motivo
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                    value={editingTransaction.motivo}
+                    onChange={e => setEditingTransaction(prev => prev ? { ...prev, motivo: e.target.value } : null)}
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex gap-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-brand-primary disabled:opacity-50 text-black font-black p-4 rounded-2xl shadow-xl shadow-brand-primary/10 hover:scale-[1.02] transition-all uppercase tracking-tighter"
+                  >
+                    {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingTransaction(null)}
+                    className="px-8 bg-white/5 border border-white/10 text-ui-muted font-bold p-4 rounded-2xl hover:text-white hover:bg-white/10 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
           <div className="glass-card rounded-[32px] border border-white/10 overflow-hidden bg-black shadow-2xl">
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
               <h3 className="font-black flex items-center gap-3 uppercase text-sm tracking-widest text-white">
@@ -162,6 +264,7 @@ const Transactions: React.FC = () => {
                       <th className="p-6 text-[10px] uppercase font-black tracking-[0.2em] text-ui-muted">Agente</th>
                       <th className="p-6 text-[10px] uppercase font-black tracking-[0.2em] text-ui-muted">Operação</th>
                       <th className="p-6 text-[10px] uppercase font-black tracking-[0.2em] text-ui-muted text-right">Montante</th>
+                      {currentUser?.role === 'admin' && <th className="p-6 text-[10px] uppercase font-black tracking-[0.2em] text-ui-muted text-center">Ações</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -183,6 +286,16 @@ const Transactions: React.FC = () => {
                               {t.valor} GTX
                             </span>
                           </td>
+                          {currentUser?.role === 'admin' && (
+                            <td className="p-6 text-center">
+                              <button
+                                onClick={() => setEditingTransaction(t)}
+                                className="p-2 bg-white/5 text-ui-muted hover:text-brand-primary hover:bg-brand-primary/10 border border-white/5 rounded-xl transition-all"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

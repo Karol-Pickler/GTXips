@@ -27,7 +27,8 @@ interface AppContextType {
   resetPassword: (email: string) => Promise<boolean>;
   updatePassword: (newPassword: string) => Promise<boolean>;
   updateProfile: (profile: Partial<User>) => Promise<boolean>;
-  addTransaction: (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito') => Promise<boolean>;
+  addTransaction: (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => Promise<boolean>;
+  updateTransaction: (transaction: Transaction) => Promise<boolean>;
   notify: (message: string, type?: NotificationType) => void;
   removeNotification: (id: string) => void;
   markNotificationAsRead: (id: string) => Promise<void>;
@@ -387,7 +388,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return true;
   };
 
-  const addTransaction = async (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito') => {
+  const addTransaction = async (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => {
     const { data: newTx, error: txError } = await supabase
       .from('transactions')
       .insert({
@@ -395,7 +396,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         valor,
         motivo,
         tipo,
-        data: new Date().toISOString().split('T')[0]
+        data: date || new Date().toISOString().split('T')[0]
       })
       .select()
       .single();
@@ -445,6 +446,69 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     notify('Lançamento registrado com sucesso!', 'success');
+    return true;
+  };
+
+  const updateTransaction = async (transaction: Transaction) => {
+    // 1. Get original transaction to calculate diff
+    const original = transactions.find(t => t.id === transaction.id);
+    if (!original) {
+      notify('Transação original não encontrada.', 'error');
+      return false;
+    }
+
+    // 2. Update Transaction in DB
+    const { error: txError } = await supabase
+      .from('transactions')
+      .update({
+        valor: transaction.valor,
+        motivo: transaction.motivo,
+        tipo: transaction.tipo,
+        data: transaction.data
+      })
+      .eq('id', transaction.id);
+
+    if (txError) {
+      console.error(txError);
+      notify(`Erro ao atualizar transação: ${txError.message}`, 'error');
+      return false;
+    }
+
+    // 3. Rectify Balance
+    // Revert original effect
+    const revertVal = original.tipo === 'credito' ? -original.valor : original.valor;
+    // Apply new effect
+    const newVal = transaction.tipo === 'credito' ? transaction.valor : -transaction.valor;
+
+    const diff = revertVal + newVal;
+
+    if (diff !== 0) {
+      // Fetch current balance
+      const targetUser = users.find(u => u.id === transaction.userId);
+      const currentBalance = targetUser?.saldoAtual || 0;
+      const newBalance = currentBalance + diff;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ saldo_atual: newBalance })
+        .eq('id', transaction.userId);
+
+      if (profileError) {
+        console.error(profileError);
+        notify(`Atenção: Transação salva mas erro ao atualizar saldo: ${profileError.message}`, 'warning');
+      } else {
+        // Update local state for user
+        setUsers(prev => prev.map(u => u.id === transaction.userId ? { ...u, saldoAtual: newBalance } : u));
+        // Update currentUser if it's me
+        if (currentUser?.id === transaction.userId) {
+          setCurrentUser(prev => prev ? { ...prev, saldoAtual: newBalance } : null);
+        }
+      }
+    }
+
+    // 4. Update local transaction state
+    setTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
+    notify('Transação atualizada com sucesso!', 'success');
     return true;
   };
 
@@ -844,7 +908,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications,
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities,
-      login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, notify, removeNotification,
+      login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, updateTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData
