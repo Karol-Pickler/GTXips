@@ -108,12 +108,24 @@ const Users: React.FC = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-700 pb-20">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">Staff Management</h1>
+          <h1 className="text-4xl font-black tracking-tighter text-white uppercase">Cadastro Colaboradores</h1>
           <p className="text-ui-muted mt-1 font-medium">Controle de acessos e permissões de nível sistêmico.</p>
         </div>
         {currentUser?.role === 'admin' && (
           <button
-            onClick={() => setIsNewFormOpen(true)}
+            onClick={() => {
+              setNewCollaborator({
+                email: '',
+                password: '',
+                nome: '',
+                cargo: '',
+                role: 'user',
+                dataNascimento: '',
+                dataContratacao: '',
+                fotoUrl: ''
+              });
+              setIsNewFormOpen(true);
+            }}
             className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 text-black px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02] shadow-xl shadow-brand-primary/20"
           >
             <UserPlus className="w-5 h-5" />
