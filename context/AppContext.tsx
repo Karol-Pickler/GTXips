@@ -38,6 +38,7 @@ interface AppContextType {
   approveRescue: (id: string) => Promise<void>;
   rejectRescue: (id: string) => Promise<void>;
   addRule: (rule: Omit<Rule, 'id'>) => Promise<boolean>;
+  updateRule: (rule: Rule) => Promise<boolean>;
   removeRule: (id: string) => Promise<boolean>;
   addFinancialRecord: (record: Omit<FinancialRecord, 'id'>) => Promise<boolean>;
   removeFinancialRecord: (id: string) => Promise<boolean>;
@@ -576,6 +577,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return false;
   };
 
+  const updateRule = async (rule: Rule) => {
+    try {
+      const { error } = await supabase
+        .from('rules')
+        .update({
+          categoria: rule.categoria,
+          valor: rule.valor,
+          descricao: rule.descricao,
+          recorrencia: rule.recorrencia,
+          is_self_service: rule.isSelfService
+        })
+        .eq('id', rule.id);
+
+      if (error) throw error;
+      setRules(prev => prev.map(r => r.id === rule.id ? rule : r));
+      notify('Diretriz atualizada com sucesso!', 'success');
+      return true;
+    } catch (err) {
+      console.error(err);
+      notify('Erro ao atualizar diretriz.', 'error');
+    }
+    return false;
+  };
+
   const addFinancialRecord = async (record: Omit<FinancialRecord, 'id'>) => {
     try {
       const { data, error } = await supabase
@@ -782,7 +807,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities,
       login, signup, logout, resetPassword, updatePassword, updateProfile, addTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
-      addRule, removeRule, addFinancialRecord, removeFinancialRecord,
+      addRule, updateRule, removeRule, addFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData
     }}>
       {children}
