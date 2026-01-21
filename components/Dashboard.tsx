@@ -19,6 +19,18 @@ const Dashboard: React.FC = () => {
 
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
+  // Get latest financial record for current quote
+  // specific logic to ensure we get the absolute latest based on year/month sorting descending
+  const latestFinancial = useMemo(() => {
+    if (financial.length === 0) return null;
+    return [...financial].sort((a, b) => {
+      if (a.ano !== b.ano) return b.ano - a.ano;
+      return parseInt(b.mes) - parseInt(a.mes);
+    })[0];
+  }, [financial]);
+
+  const currentQuote = latestFinancial?.valorCotacao || 1.0;
+
   // Helper to calculate total user balance (SG) at the end of a specific month/year
   const getSimulatedSG = (targetMonth: string, targetYear: number) => {
     // End of the target month
@@ -98,9 +110,12 @@ const Dashboard: React.FC = () => {
   }, [last12, transactions]);
 
   const getUserStats = (userId: string) => {
+    const user = users.find(u => u.id === userId);
     const userT = transactions.filter(t => t.userId === userId);
     const totalGasto = userT.filter(t => t.tipo === 'debito').reduce((acc, curr) => acc + curr.valor, 0);
-    const totalGanho = userT.filter(t => t.tipo === 'credito').reduce((acc, curr) => acc + curr.valor, 0);
+    // Ganho is now Value = Balance * Current Quote
+    const balance = user?.saldoAtual || 0;
+    const totalGanho = balance * currentQuote;
     return { totalGasto, totalGanho };
   };
 
@@ -214,8 +229,8 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="bg-black/40 p-3 rounded-2xl border border-white/5 text-center group-hover:border-semantic-info/20 transition-all">
                     <CircleDollarSign className="w-4 h-4 mx-auto mb-2 text-brand-secondary opacity-60" />
-                    <p className="text-[9px] text-ui-muted uppercase font-black tracking-tighter">Ganho</p>
-                    <p className="font-black text-sm text-white">{totalGanho}</p>
+                    <p className="text-[9px] text-ui-muted uppercase font-black tracking-tighter">Valor (R$)</p>
+                    <p className="font-black text-sm text-white">R$ {totalGanho.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
                 </div>
               </div>
