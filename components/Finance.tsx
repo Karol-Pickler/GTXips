@@ -54,7 +54,7 @@ const Finance: React.FC = () => {
     const liability = sg * cmPrev;
     const surplus = gc - liability;
     const vm = (surplus / 10000) / 100;
-    const newCm = cmPrev + vm;
+    const newCm = cmPrev * (1 + vm);
     return { newCm, vm };
   };
 
