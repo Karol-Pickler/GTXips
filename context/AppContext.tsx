@@ -32,6 +32,7 @@ interface AppContextType {
   uploadAvatar: (file: File) => Promise<string | null>;
   addTransaction: (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => Promise<boolean>;
   updateTransaction: (transaction: Transaction) => Promise<boolean>;
+  deleteTransaction: (id: string) => Promise<boolean>;
   notify: (message: string, type?: NotificationType) => void;
   removeNotification: (id: string) => void;
   markNotificationAsRead: (id: string) => Promise<void>;
@@ -576,6 +577,57 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return true;
   };
 
+  const deleteTransaction = async (id: string) => {
+    // 1. Find the transaction to delete
+    const transaction = transactions.find(t => t.id === id);
+    if (!transaction) {
+      notify('Transação não encontrada.', 'error');
+      return false;
+    }
+
+    // 2. Delete from Supabase
+    const { error: deleteError } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error(deleteError);
+      notify(`Erro ao excluir transação: ${deleteError.message}`, 'error');
+      return false;
+    }
+
+    // 3. Revert balance effect
+    // If it was a credit, we subtract it; if debit, we add it back
+    const revertVal = transaction.tipo === 'credito' ? -transaction.valor : transaction.valor;
+
+    const targetUser = users.find(u => u.id === transaction.userId);
+    const currentBalance = targetUser?.saldoAtual || 0;
+    const newBalance = currentBalance + revertVal;
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ saldo_atual: newBalance })
+      .eq('id', transaction.userId);
+
+    if (profileError) {
+      console.error(profileError);
+      notify(`Atenção: Transação excluída mas erro ao atualizar saldo: ${profileError.message}`, 'warning');
+    } else {
+      // Update local state for user
+      setUsers(prev => prev.map(u => u.id === transaction.userId ? { ...u, saldoAtual: newBalance } : u));
+      // Update currentUser if it's me
+      if (currentUser?.id === transaction.userId) {
+        setCurrentUser(prev => prev ? { ...prev, saldoAtual: newBalance } : null);
+      }
+    }
+
+    // 4. Remove from local state
+    setTransactions(prev => prev.filter(t => t.id !== id));
+    notify('Transação excluída com sucesso!', 'success');
+    return true;
+  };
+
   const addActivity = async (activity: Omit<UserActivity, 'id' | 'status'>) => {
     const { data, error } = await supabase
       .from('activities')
@@ -972,7 +1024,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications, pageTitle,
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities, setPageTitle,
-      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, notify, removeNotification,
+      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, deleteTransaction, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData, recalculateBalance

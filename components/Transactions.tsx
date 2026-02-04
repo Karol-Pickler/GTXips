@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign, Calendar, Pencil, X } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign, Calendar, Pencil, X, Trash2 } from 'lucide-react';
 import { Transaction } from '../types';
 
 const Transactions: React.FC = () => {
-  const { users, rules, transactions, addTransaction, updateTransaction, currentUser, setPageTitle } = useApp();
+  const { users, rules, transactions, addTransaction, updateTransaction, deleteTransaction, currentUser, setPageTitle } = useApp();
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedRule, setSelectedRule] = useState('');
   const [manualAmount, setManualAmount] = useState<number | ''>('');
@@ -14,6 +14,7 @@ const Transactions: React.FC = () => {
   const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter states
@@ -91,6 +92,16 @@ const Transactions: React.FC = () => {
     const success = await updateTransaction(editingTransaction);
     if (success) {
       setEditingTransaction(null);
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!deletingTransaction) return;
+    setIsSubmitting(true);
+    const success = await deleteTransaction(deletingTransaction.id);
+    if (success) {
+      setDeletingTransaction(null);
     }
     setIsSubmitting(false);
   };
@@ -312,6 +323,70 @@ const Transactions: React.FC = () => {
             </div>
           )}
 
+          {/* Delete Confirmation Modal */}
+          {deletingTransaction && (
+            <div className="glass-card p-8 rounded-[32px] border border-semantic-error/40 bg-black shadow-[0_0_50px_rgba(255,89,99,0.05)]">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="font-black flex items-center gap-3 uppercase text-xs tracking-[0.2em] text-semantic-error">
+                  <Trash2 className="w-5 h-5" />
+                  Confirmar Exclusão
+                </h3>
+                <button
+                  onClick={() => setDeletingTransaction(null)}
+                  className="text-ui-muted hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-6 bg-semantic-error/10 border border-semantic-error/20 rounded-2xl">
+                  <p className="text-white font-bold mb-4">
+                    Você está prestes a excluir este lançamento. Esta ação não pode ser desfeita.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-ui-muted">Data:</span>
+                      <span className="text-white font-bold">{deletingTransaction.data}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-ui-muted">Agente:</span>
+                      <span className="text-white font-bold">{users.find(u => u.id === deletingTransaction.userId)?.nome || 'Ex-Colaborador'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-ui-muted">Operação:</span>
+                      <span className="text-white font-bold">{deletingTransaction.motivo}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-ui-muted">Valor:</span>
+                      <span className={`font-black ${deletingTransaction.tipo === 'credito' ? 'text-brand-primary' : 'text-semantic-error'}`}>
+                        {deletingTransaction.tipo === 'credito' ? '+' : '-'}{deletingTransaction.valor} GTX
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setDeletingTransaction(null)}
+                    className="flex-1 bg-white/5 border border-white/10 text-ui-muted font-bold p-4 rounded-2xl hover:text-white hover:bg-white/10 transition-all uppercase tracking-tighter"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteTransaction}
+                    disabled={isSubmitting}
+                    className="flex-1 bg-semantic-error disabled:opacity-50 text-white font-black p-4 rounded-2xl shadow-xl shadow-semantic-error/10 hover:scale-[1.02] transition-all uppercase tracking-tighter"
+                  >
+                    {isSubmitting ? 'Excluindo...' : 'Confirmar Exclusão'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Edit Modal */}
           {editingTransaction && (
             <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
@@ -434,12 +509,22 @@ const Transactions: React.FC = () => {
                           </td>
                           {currentUser?.role === 'admin' && (
                             <td className="p-6 text-center">
-                              <button
-                                onClick={() => setEditingTransaction(t)}
-                                className="p-2 bg-white/5 text-ui-muted hover:text-brand-primary hover:bg-brand-primary/10 border border-white/5 rounded-xl transition-all"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => setEditingTransaction(t)}
+                                  className="p-2 bg-white/5 text-ui-muted hover:text-brand-primary hover:bg-brand-primary/10 border border-white/5 rounded-xl transition-all"
+                                  title="Editar lançamento"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setDeletingTransaction(t)}
+                                  className="p-2 bg-white/5 text-ui-muted hover:text-semantic-error hover:bg-semantic-error/10 border border-white/5 rounded-xl transition-all"
+                                  title="Excluir lançamento"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </td>
                           )}
                         </tr>
