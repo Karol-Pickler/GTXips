@@ -41,6 +41,9 @@ const Transactions: React.FC = () => {
     if (filterDateTo && t.data > filterDateTo) return false;
 
     return true;
+  }).sort((a, b) => {
+    // Sort by date descending (newest first)
+    return b.data.localeCompare(a.data);
   });
 
   // Reset filters

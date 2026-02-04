@@ -52,6 +52,7 @@ interface AppContextType {
   deleteProfile: (id: string) => Promise<boolean>;
   refreshData: () => Promise<void>;
   recalculateBalance: (userId: string) => Promise<boolean>;
+  recalculateFinancialRecords: (fromDate: string) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -453,6 +454,126 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const recalculateFinancialRecords = async (fromDate: string) => {
+    try {
+      // Parse the starting date (format: YYYY-MM-DD)
+      const [startYear, startMonth] = fromDate.split('-').map(Number);
+
+      // Get current date to know when to stop
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      // Fetch all transactions and financial records
+      const { data: allTransactions, error: txError } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('data', { ascending: true });
+
+      if (txError) throw txError;
+
+      const { data: allFinancialRecords, error: finError } = await supabase
+        .from('financial')
+        .select('*')
+        .order('ano', { ascending: true })
+        .order('mes', { ascending: true });
+
+      if (finError) throw finError;
+
+      // Helper function to get balance up to a specific date
+      const getBalanceUpToDate = (year: number, month: number) => {
+        const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+
+        return allTransactions?.reduce((total, tx) => {
+          if (tx.data <= endDate) {
+            const val = Number(tx.valor);
+            return tx.tipo === 'credito' ? total + val : total - val;
+          }
+          return total;
+        }, 0) || 0;
+      };
+
+      // Helper to get previous record's cotacao
+      const getPreviousCotacao = (year: number, month: number) => {
+        const prevMonth = month === 1 ? 12 : month - 1;
+        const prevYear = month === 1 ? year - 1 : year;
+        const prevMonthStr = String(prevMonth).padStart(2, '0');
+
+        const prevRecord = allFinancialRecords?.find(
+          f => f.ano === prevYear && f.mes === prevMonthStr
+        );
+
+        return prevRecord ? Number(prevRecord.valor_cotacao) : 1.0;
+      };
+
+      // Iterate through all months from startMonth/startYear to current month
+      let year = startYear;
+      let month = startMonth;
+
+      while (year < currentYear || (year === currentYear && month <= currentMonth)) {
+        const monthStr = String(month).padStart(2, '0');
+
+        // Find the financial record for this month
+        const existingRecord = allFinancialRecords?.find(
+          f => f.ano === year && f.mes === monthStr
+        );
+
+        if (existingRecord) {
+          // Calculate balance up to this month
+          const sg = getBalanceUpToDate(year, month);
+
+          // Get previous month's cotacao
+          const cmPrev = getPreviousCotacao(year, month);
+
+          // Get generation of cash for this month
+          const gc = Number(existingRecord.geracao_caixa);
+
+          // Calculate new cotacao using the formula
+          const liability = sg * cmPrev;
+          const surplus = gc - liability;
+          const vm = (surplus / 10000) / 100;
+          const newCm = cmPrev + vm;
+
+          // Update the record in Supabase
+          const { error: updateError } = await supabase
+            .from('financial')
+            .update({ valor_cotacao: parseFloat(newCm.toFixed(4)) })
+            .eq('id', existingRecord.id);
+
+          if (updateError) {
+            console.error(`Error updating financial record ${monthStr}/${year}:`, updateError);
+          }
+
+          // Update local cache for next iteration
+          if (allFinancialRecords) {
+            const idx = allFinancialRecords.findIndex(f => f.id === existingRecord.id);
+            if (idx !== -1) {
+              allFinancialRecords[idx].valor_cotacao = parseFloat(newCm.toFixed(4));
+            }
+          }
+        }
+
+        // Move to next month
+        if (month === 12) {
+          month = 1;
+          year++;
+        } else {
+          month++;
+        }
+      }
+
+      // Refresh data to update UI
+      await fetchData();
+
+      notify('Cotações recalculadas com sucesso!', 'success');
+      return true;
+    } catch (err: any) {
+      console.error('Error recalculating financial records:', err);
+      notify(`Erro ao recalcular cotações: ${err.message}`, 'error');
+      return false;
+    }
+  };
+
   const addTransaction = async (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => {
     const { data: newTx, error: txError } = await supabase
       .from('transactions')
@@ -509,6 +630,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         tipo: newTx.tipo as any
       }, ...prev]);
     }
+
+    // Refresh data from database
+    await fetchData();
 
     notify('Lançamento registrado com sucesso!', 'success');
     return true;
@@ -573,6 +697,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // 4. Update local transaction state
     setTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
+
+    // 5. Refresh data from database to ensure consistency
+    await fetchData();
+
     notify('Transação atualizada com sucesso!', 'success');
     return true;
   };
@@ -624,6 +752,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // 4. Remove from local state
     setTransactions(prev => prev.filter(t => t.id !== id));
+
+    // 5. Refresh data from database
+    await fetchData();
+
     notify('Transação excluída com sucesso!', 'success');
     return true;
   };
