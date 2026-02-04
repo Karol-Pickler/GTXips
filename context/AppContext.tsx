@@ -739,7 +739,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // 2. Delete from Supabase
     const { error: deleteError, count } = await supabase
       .from('transactions')
-      .delete({ count: 'exact' })
+      .delete()
       .eq('id', id);
 
     if (deleteError) {
