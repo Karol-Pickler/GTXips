@@ -749,9 +749,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     if (count === 0) {
-      notify('Transação não encontrada no banco. Atualizando lista...', 'warning');
-      await fetchData();
-      return false;
+      // Diagnostic check: Is it missing or permission denied?
+      const { data: checkData } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('id', id)
+        .single();
+
+      if (checkData) {
+        notify('Erro: Permissão negada para excluir este registro.', 'error');
+        return false;
+      } else {
+        notify('Transação não encontrada no banco. Atualizando lista...', 'warning');
+        await fetchData();
+        return false;
+      }
     }
 
     // 3. Revert balance effect
