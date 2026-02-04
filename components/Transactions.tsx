@@ -529,7 +529,7 @@ const Transactions: React.FC = () => {
                           <td className={`p-6 text-right font-black text-sm ${t.tipo === 'credito' ? 'text-brand-primary neon-text' : 'text-semantic-error'}`}>
                             <span className="flex items-center justify-end gap-2">
                               {t.tipo === 'credito' ? <ArrowUpCircle size={14} /> : <ArrowDownCircle size={14} />}
-                              {t.valor} GTX
+                              {t.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} GTX
                             </span>
                           </td>
                           {currentUser?.role === 'admin' && (

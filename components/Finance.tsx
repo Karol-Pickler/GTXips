@@ -307,15 +307,15 @@ const Finance: React.FC = () => {
                 <div className="mt-2 p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-ui-muted space-y-1">
                   <div className="flex justify-between">
                     <span>Base (Referência {prevMonthStr}/{prevYear}):</span>
-                    <span className="font-bold text-white">R$ {cmPrev.toFixed(4)}</span>
+                    <span className="font-bold text-white">R$ {cmPrev.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Variação (VM):</span>
-                    <span className={`font-bold ${vm >= 0 ? 'text-brand-primary' : 'text-semantic-error'}`}>{vm >= 0 ? '+' : ''}{vm.toFixed(4)}</span>
+                    <span className={`font-bold ${vm >= 0 ? 'text-brand-primary' : 'text-semantic-error'}`}>{vm >= 0 ? '+' : ''}{vm.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
                   </div>
                   <div className="flex justify-between border-t border-white/10 pt-1 mt-1">
                     <span className="font-extrabold uppercase">Nova Cotação:</span>
-                    <span className="font-black text-brand-primary neon-text">R$ {newCm.toFixed(4)}</span>
+                    <span className="font-black text-brand-primary neon-text">R$ {newCm.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
                   </div>
                 </div>
               )}
@@ -389,11 +389,11 @@ const Finance: React.FC = () => {
                 <tr key={`${item.monthIndex}-${filterYear || currentYear}`} className="bg-black hover:bg-brand-primary/5 transition-all group">
                   <td className="p-6 font-bold text-sm text-white group-hover:text-brand-primary transition-colors">{item.monthName}</td>
                   <td className="p-6 text-sm font-medium text-ui-muted group-hover:text-white transition-colors">
-                    {item.record ? `R$ ${item.record.geracaoCaixa.toLocaleString()}` : <span className="opacity-20">Aguardando dados...</span>}
+                    {item.record ? `R$ ${item.record.geracaoCaixa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : <span className="opacity-20">Aguardando dados...</span>}
                   </td>
                   <td className="p-6">
                     {item.record ? (
-                      <span className="font-black text-brand-primary">R$ {item.record.valorCotacao}</span>
+                      <span className="font-black text-brand-primary">R$ {Number(item.record.valorCotacao).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
                     ) : (
                       <span className="text-ui-muted opacity-20 italic text-xs">Pendente</span>
                     )}

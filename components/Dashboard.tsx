@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
       // Note: Regulation says "10.000", assuming 10,000.
       const vm = ((gc - (sg * cmPrev)) / 10000) / 100;
 
-      const variationPercent = cmPrev > 0 ? (vm / cmPrev) : 0;
+      const variationPercent = vm;
 
       // For accumulated, we compare stored values to show actual historical trend of value
       // Or we could reconstruct the chain. Let's stick to stored values for Accumulated
@@ -126,11 +126,11 @@ const Dashboard: React.FC = () => {
         <div className="bg-[#121612] border border-[#77c25544] rounded-2xl p-4 shadow-2xl backdrop-blur-md">
           <p className="font-black text-white text-sm mb-2 uppercase tracking-tight">{label}</p>
           <div className="space-y-1 text-xs text-ui-muted font-mono">
-            <p className="flex justify-between gap-4"><span className="text-brand-primary">GC (Caixa):</span> <span className="text-white">R$ {data.gc?.toLocaleString()}</span></p>
-            <p className="flex justify-between gap-4"><span className="text-brand-primary">SG (Saldo):</span> <span className="text-white">{data.sg?.toLocaleString()} GTX</span></p>
-            <p className="flex justify-between gap-4"><span className="text-brand-primary">CM (Ant.):</span> <span className="text-white">R$ {data.cmPrev?.toFixed(4)}</span></p>
+            <p className="flex justify-between gap-4"><span className="text-brand-primary">GC (Caixa):</span> <span className="text-white">R$ {data.gc?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></p>
+            <p className="flex justify-between gap-4"><span className="text-brand-primary">SG (Saldo):</span> <span className="text-white">{data.sg?.toLocaleString('pt-BR')} GTX</span></p>
+            <p className="flex justify-between gap-4"><span className="text-brand-primary">CM (Ant.):</span> <span className="text-white">R$ {data.cmPrev?.toLocaleString('pt-BR', { minimumFractionDigits: 4 })}</span></p>
             <div className="h-px bg-white/10 my-2"></div>
-            <p className="flex justify-between gap-4 font-black"><span className="text-brand-primary">VM (Var.):</span> <span className="text-white">{data.vm?.toFixed(4)} ({data.variation.toFixed(2)}%)</span></p>
+            <p className="flex justify-between gap-4 font-black"><span className="text-brand-primary">VM (Var.):</span> <span className="text-white">{data.vm?.toLocaleString('pt-BR', { minimumFractionDigits: 4 })} ({data.variation.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%)</span></p>
           </div>
         </div>
       );
@@ -230,7 +230,7 @@ const Dashboard: React.FC = () => {
                   <div className="bg-black/40 p-3 rounded-2xl border border-white/5 text-center group-hover:border-semantic-info/20 transition-all">
                     <CircleDollarSign className="w-4 h-4 mx-auto mb-2 text-brand-secondary opacity-60" />
                     <p className="text-[9px] text-ui-muted uppercase font-black tracking-tighter">Valor (R$)</p>
-                    <p className="font-black text-sm text-white">R$ {totalGanho.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="font-black text-sm text-white">R$ {totalGanho.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
                 </div>
               </div>

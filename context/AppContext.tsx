@@ -531,10 +531,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const gc = Number(existingRecord.geracao_caixa);
 
           // Calculate new cotacao using the formula
+          // Calculate new cotacao using the formula
           const liability = sg * cmPrev;
           const surplus = gc - liability;
-          const vm = (surplus / 10000) / 100;
-          const newCm = cmPrev + vm;
+          const vm = (surplus / 10000) / 100; // Índice Mês
+          const newCm = cmPrev * (1 + vm); // Número Índice (Multiplicative)
 
           // Update the record in Supabase
           const { error: updateError } = await supabase
@@ -1068,7 +1069,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (error) throw error;
 
       setFinancial(prev => prev.map(f => f.id === record.id ? record : f));
-      notify('Registro financeiro atualizado!', 'success');
+
+      // Trigger recalculation from this month forward
+      const dateStr = `${record.ano}-${record.mes}-01`;
+      await recalculateFinancialRecords(dateStr);
+
+      notify('Registro financeiro atualizado e recálculo iniciado!', 'success');
       return true;
     } catch (err) {
       console.error(err);
