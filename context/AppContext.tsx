@@ -650,7 +650,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     // 2. Update Transaction in DB
-    const { error: txError } = await supabase
+    const { data: updatedData, error: txError } = await supabase
       .from('transactions')
       .update({
         valor: transaction.valor,
@@ -658,11 +658,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         tipo: transaction.tipo,
         data: transaction.data
       })
-      .eq('id', transaction.id);
+      .eq('id', transaction.id)
+      .select();
 
     if (txError) {
       console.error(txError);
       notify(`Erro ao atualizar transação: ${txError.message}`, 'error');
+      return false;
+    }
+
+    if (!updatedData || updatedData.length === 0) {
+      notify('Erro: Transação não encontrada ou permissão negada.', 'error');
       return false;
     }
 
@@ -710,7 +716,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     await recalculateFinancialRecords(earliestDate);
 
     // 6. Refresh data from database to ensure consistency
-    await fetchData();
+    await recalculateFinancialRecords(earliestDate);
+
+    // fetchData is called inside recalculateFinancialRecords, so we don't need to call it again
+
+    notify('Transação atualizada com sucesso!', 'success');
+    return true;
 
     notify('Transação atualizada com sucesso!', 'success');
     return true;
@@ -725,14 +736,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     // 2. Delete from Supabase
-    const { error: deleteError } = await supabase
+    const { error: deleteError, count } = await supabase
       .from('transactions')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('id', id);
 
     if (deleteError) {
       console.error(deleteError);
       notify(`Erro ao excluir transação: ${deleteError.message}`, 'error');
+      return false;
+    }
+
+    if (count === 0) {
+      notify('Erro: Transação não encontrada ou permissão negada.', 'error');
       return false;
     }
 
