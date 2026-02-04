@@ -33,6 +33,7 @@ interface AppContextType {
   addTransaction: (userId: string, valor: number, motivo: string, tipo: 'credito' | 'debito', date?: string) => Promise<boolean>;
   updateTransaction: (transaction: Transaction) => Promise<boolean>;
   deleteTransaction: (id: string) => Promise<boolean>;
+  fixDatabaseDates: () => Promise<void>;
   notify: (message: string, type?: NotificationType) => void;
   removeNotification: (id: string) => void;
   markNotificationAsRead: (id: string) => Promise<void>;
@@ -804,6 +805,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return true;
   };
 
+  const fixDatabaseDates = async () => {
+    notify('Iniciando correção de datas...', 'info');
+    let fixedCount = 0;
+
+    // Fetch all without ordering to avoid sort errors
+    const { data: allTransactions } = await supabase.from('transactions').select('*');
+
+    if (!allTransactions) return;
+
+    for (const t of allTransactions) {
+      let newDate = t.data;
+      let changed = false;
+
+      // Check for DD/MM/YYYY format
+      if (t.data.includes('/')) {
+        const parts = t.data.split('/');
+        if (parts.length === 3) {
+          // Assuming DD/MM/YYYY
+          newDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          changed = true;
+        }
+      }
+      // Check for YYYY MM DD format (spaces)
+      else if (t.data.includes(' ')) {
+        newDate = t.data.replace(/ /g, '-');
+        changed = true;
+      }
+
+      if (changed) {
+        const { error } = await supabase
+          .from('transactions')
+          .update({ data: newDate })
+          .eq('id', t.id);
+
+        if (!error) {
+          fixedCount++;
+        }
+      }
+    }
+
+    await fetchData();
+    if (fixedCount > 0) {
+      notify(`Correção concluída! ${fixedCount} datas ajustadas.`, 'success');
+    } else {
+      notify('Nenhuma data incorreta encontrada.', 'info');
+    }
+  };
+
   const addActivity = async (activity: Omit<UserActivity, 'id' | 'status'>) => {
     const { data, error } = await supabase
       .from('activities')
@@ -1200,7 +1249,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications, pageTitle,
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities, setPageTitle,
-      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, deleteTransaction, notify, removeNotification,
+      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, deleteTransaction, fixDatabaseDates, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData, recalculateBalance
