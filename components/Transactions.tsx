@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign, Calendar, Pencil, X, Trash2, Database } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, History, Filter, Send, User as UserIcon, Award, DollarSign, Calendar, Pencil, X, Trash2, Database, Calculator } from 'lucide-react';
 import { Transaction } from '../types';
 
 const Transactions: React.FC = () => {
-  const { users, rules, transactions, addTransaction, updateTransaction, deleteTransaction, fixDatabaseDates, currentUser, setPageTitle } = useApp();
+  const { users, rules, transactions, addTransaction, updateTransaction, deleteTransaction, fixDatabaseDates, recalculateAllUserBalances, currentUser, setPageTitle } = useApp();
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedRule, setSelectedRule] = useState('');
   const [manualAmount, setManualAmount] = useState<number | ''>('');
@@ -472,14 +472,24 @@ const Transactions: React.FC = () => {
               </h3>
               <div className="flex items-center gap-4">
                 {currentUser?.role === 'admin' && (
-                  <button
-                    onClick={fixDatabaseDates}
-                    className="text-[10px] font-black flex items-center gap-2 transition-colors uppercase tracking-[0.2em] text-ui-muted hover:text-brand-primary"
-                    title="Normalizar formatos de data no banco de dados"
-                  >
-                    <Database className="w-3 h-3" />
-                    Corrigir Datas
-                  </button>
+                  <>
+                    <button
+                      onClick={fixDatabaseDates}
+                      className="text-[10px] font-black flex items-center gap-2 transition-colors uppercase tracking-[0.2em] text-ui-muted hover:text-brand-primary"
+                      title="Normalizar formatos de data no banco de dados"
+                    >
+                      <Database className="w-3 h-3" />
+                      Corrigir Datas
+                    </button>
+                    <button
+                      onClick={recalculateAllUserBalances}
+                      className="text-[10px] font-black flex items-center gap-2 transition-colors uppercase tracking-[0.2em] text-ui-muted hover:text-brand-primary"
+                      title="Recalcular saldo de todos usuários baseado nas transações"
+                    >
+                      <Calculator className="w-3 h-3" />
+                      Sincronizar Saldos
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => setShowFilterModal(true)}

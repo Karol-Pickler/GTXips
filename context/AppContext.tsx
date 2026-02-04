@@ -34,6 +34,7 @@ interface AppContextType {
   updateTransaction: (transaction: Transaction) => Promise<boolean>;
   deleteTransaction: (id: string) => Promise<boolean>;
   fixDatabaseDates: () => Promise<void>;
+  recalculateAllUserBalances: () => Promise<void>;
   notify: (message: string, type?: NotificationType) => void;
   removeNotification: (id: string) => void;
   markNotificationAsRead: (id: string) => Promise<void>;
@@ -853,6 +854,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const recalculateAllUserBalances = async () => {
+    notify('Sincronizando saldos dos usuários...', 'info');
+    let updatedCount = 0;
+
+    const { data: allUsers } = await supabase.from('profiles').select('id');
+    const { data: allTransactions } = await supabase.from('transactions').select('*');
+
+    if (!allUsers || !allTransactions) return;
+
+    for (const user of allUsers) {
+      const userTransactions = allTransactions.filter(t => t.userId === user.id);
+
+      let newBalance = 0;
+      userTransactions.forEach(t => {
+        if (t.tipo === 'credito') newBalance += t.valor;
+        else newBalance -= t.valor;
+      });
+
+      // Update in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ saldo_atual: newBalance })
+        .eq('id', user.id);
+
+      if (!error) updatedCount++;
+    }
+
+    await fetchData();
+    notify(`Sincronização completa! ${updatedCount} perfis atualizados.`, 'success');
+  };
+
   const addActivity = async (activity: Omit<UserActivity, 'id' | 'status'>) => {
     const { data, error } = await supabase
       .from('activities')
@@ -1249,7 +1281,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       users, rules, transactions, financial, currentUser, isAuthenticated, rescues, activities, notifications, appNotifications, pageTitle,
       setUsers, setRules, setTransactions, setFinancial, setRescues, setActivities, setPageTitle,
-      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, deleteTransaction, fixDatabaseDates, notify, removeNotification,
+      login, signup, logout, resetPassword, updatePassword, updateProfile, uploadAvatar, addTransaction, updateTransaction, deleteTransaction, fixDatabaseDates, recalculateAllUserBalances, notify, removeNotification,
       markNotificationAsRead, addActivity, addRescue, approveActivity, rejectActivity, approveRescue, rejectRescue,
       addRule, updateRule, removeRule, addFinancialRecord, updateFinancialRecord, removeFinancialRecord,
       upsertProfile, deleteProfile, refreshData: fetchData, recalculateBalance
