@@ -631,6 +631,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }, ...prev]);
     }
 
+    // Recalculate financial records from this date forward
+    await recalculateFinancialRecords(date || new Date().toISOString().split('T')[0]);
+
     // Refresh data from database
     await fetchData();
 
@@ -698,7 +701,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // 4. Update local transaction state
     setTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
 
-    // 5. Refresh data from database to ensure consistency
+    // 5. Recalculate financial records
+    // We need to recalculate from the earliest date affected (either original or new date)
+    const originalDate = original.data;
+    const newDate = transaction.data;
+    const earliestDate = originalDate < newDate ? originalDate : newDate;
+
+    await recalculateFinancialRecords(earliestDate);
+
+    // 6. Refresh data from database to ensure consistency
     await fetchData();
 
     notify('Transação atualizada com sucesso!', 'success');
@@ -753,7 +764,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // 4. Remove from local state
     setTransactions(prev => prev.filter(t => t.id !== id));
 
-    // 5. Refresh data from database
+    // 5. Recalculate financial records from the deleted transaction's date
+    await recalculateFinancialRecords(transaction.data);
+
+    // 6. Refresh data from database
     await fetchData();
 
     notify('Transação excluída com sucesso!', 'success');
