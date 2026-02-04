@@ -16,9 +16,42 @@ const Transactions: React.FC = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Filter states
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterAgent, setFilterAgent] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'credito' | 'debito'>('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+
   useEffect(() => {
     setPageTitle('Histórico');
   }, []);
+
+  // Filter transactions
+  const filteredTransactions = transactions.filter(t => {
+    // Filter by agent
+    if (filterAgent && t.userId !== filterAgent) return false;
+
+    // Filter by type
+    if (filterType !== 'all' && t.tipo !== filterType) return false;
+
+    // Filter by date range
+    if (filterDateFrom && t.data < filterDateFrom) return false;
+    if (filterDateTo && t.data > filterDateTo) return false;
+
+    return true;
+  });
+
+  // Reset filters
+  const resetFilters = () => {
+    setFilterAgent('');
+    setFilterType('all');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+  };
+
+  // Check if any filter is active
+  const hasActiveFilters = filterAgent || filterType !== 'all' || filterDateFrom || filterDateTo;
 
 
   const handleManualLaunch = async (e: React.FormEvent) => {
@@ -175,6 +208,110 @@ const Transactions: React.FC = () => {
         </div>
 
         <div className="lg:col-span-2 space-y-8">
+          {/* Filter Modal */}
+          {showFilterModal && (
+            <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="font-black flex items-center gap-3 uppercase text-xs tracking-[0.2em] text-brand-primary">
+                  <Filter className="w-5 h-5" />
+                  Filtrar Registros
+                </h3>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="text-ui-muted hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block flex items-center gap-2">
+                    <UserIcon size={12} className="text-brand-primary" />
+                    Filtrar por Agente
+                  </label>
+                  <select
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary appearance-none text-white font-bold cursor-pointer"
+                    value={filterAgent}
+                    onChange={e => setFilterAgent(e.target.value)}
+                  >
+                    <option value="" className="bg-[#1a1a1a] text-white">Todos os Agentes</option>
+                    {users.map(u => <option key={u.id} value={u.id} className="bg-[#1a1a1a] text-white">{u.nome} ({u.cargo})</option>)}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block">
+                    Tipo de Operação
+                  </label>
+                  <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setFilterType('all')}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterType === 'all' ? 'bg-white/10 text-white shadow-inner' : 'text-ui-muted hover:text-white'}`}
+                    >Todas</button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterType('credito')}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterType === 'credito' ? 'bg-brand-primary text-black shadow-[0_0_15px_rgba(119,194,85,0.3)]' : 'text-ui-muted hover:text-white'}`}
+                    >Crédito</button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterType('debito')}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterType === 'debito' ? 'bg-semantic-error text-white shadow-[0_0_15px_rgba(255,89,99,0.3)]' : 'text-ui-muted hover:text-white'}`}
+                    >Débito</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block flex items-center gap-2">
+                    <Calendar size={12} className="text-brand-primary" />
+                    Data Inicial
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                    value={filterDateFrom}
+                    onChange={e => setFilterDateFrom(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-ui-muted uppercase font-black tracking-[0.2em] ml-1 mb-2 block flex items-center gap-2">
+                    <Calendar size={12} className="text-brand-primary" />
+                    Data Final
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-brand-primary text-white font-bold"
+                    value={filterDateTo}
+                    onChange={e => setFilterDateTo(e.target.value)}
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex gap-4 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetFilters();
+                      setShowFilterModal(false);
+                    }}
+                    className="flex-1 bg-white/5 border border-white/10 text-ui-muted font-bold p-4 rounded-2xl hover:text-white hover:bg-white/10 transition-all uppercase tracking-tighter"
+                  >
+                    Limpar Filtros
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowFilterModal(false)}
+                    className="flex-1 bg-brand-primary text-black font-black p-4 rounded-2xl shadow-xl shadow-brand-primary/10 hover:scale-[1.02] transition-all uppercase tracking-tighter"
+                  >
+                    Aplicar Filtros
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Edit Modal */}
           {editingTransaction && (
             <div className="glass-card p-8 rounded-[32px] border border-brand-primary/40 bg-black shadow-[0_0_50px_rgba(119,194,85,0.05)]">
@@ -255,9 +392,13 @@ const Transactions: React.FC = () => {
                 <History className="w-5 h-5 text-brand-primary" />
                 Histórico de Terminal
               </h3>
-              <button className="text-[10px] font-black text-ui-muted flex items-center gap-2 hover:text-brand-primary transition-colors uppercase tracking-[0.2em]">
+              <button
+                onClick={() => setShowFilterModal(true)}
+                className={`text-[10px] font-black flex items-center gap-2 transition-colors uppercase tracking-[0.2em] ${hasActiveFilters ? 'text-brand-primary' : 'text-ui-muted hover:text-brand-primary'}`}
+              >
                 <Filter className="w-3 h-3" />
                 Filtrar Registros
+                {hasActiveFilters && <span className="w-2 h-2 bg-brand-primary rounded-full animate-pulse" />}
               </button>
             </div>
             <div className="max-h-[700px] overflow-y-auto overflow-x-auto">
@@ -273,7 +414,7 @@ const Transactions: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {transactions.map(t => {
+                    {filteredTransactions.map(t => {
                       const user = users.find(u => u.id === t.userId);
                       return (
                         <tr key={t.id} className="bg-black hover:bg-brand-primary/5 transition-all group">
@@ -306,7 +447,7 @@ const Transactions: React.FC = () => {
                     })}
                   </tbody>
                 </table>
-                {transactions.length === 0 && (
+                {filteredTransactions.length === 0 && (
                   <div className="p-20 text-center space-y-4">
                     <History className="w-12 h-12 text-ui-muted/20 mx-auto" />
                     <p className="text-ui-muted font-black uppercase text-xs tracking-widest">Nenhum registro encontrado no ledger.</p>
